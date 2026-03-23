@@ -205,14 +205,11 @@ export default function PlanEditorPage() {
 
           {/* Save dialog */}
           <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                size="sm"
-                className="h-8 text-xs font-semibold bg-blue-600 hover:bg-blue-700 shadow-sm"
-              >
-                <Save className="h-3.5 w-3.5 mr-1.5" />
-                Save Plan
-              </Button>
+            <DialogTrigger
+              className="inline-flex items-center gap-1.5 h-8 px-3 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors"
+            >
+              <Save className="h-3.5 w-3.5" />
+              Save Plan
             </DialogTrigger>
 
             <DialogContent className="sm:max-w-md">
