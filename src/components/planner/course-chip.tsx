@@ -28,27 +28,13 @@ export function CourseChip({
 
   const containerClasses = cn(
     'group flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium border transition-all duration-150',
-    {
-      // Completed - green
-      'bg-emerald-50 border-emerald-200 text-emerald-800':
-        status === 'completed' && school === 'udel',
-      // Transfer (completed brookdale) - teal/cyan
-      'bg-cyan-50 border-cyan-200 text-cyan-800':
-        status === 'completed' && school === 'brookdale',
-      // In progress - amber
-      'bg-amber-50 border-amber-200 text-amber-800': status === 'in_progress',
-      // Planned - blue
-      'bg-blue-50 border-blue-200 text-blue-800':
-        status === 'planned' && school === 'udel',
-      // Planned brookdale - cyan
-      'bg-cyan-50 border-cyan-200 text-cyan-800':
-        status === 'planned' && school === 'brookdale',
-      // Transfer status
-      'bg-teal-50 border-teal-200 text-teal-800': status === 'transfer',
-      // Hover effect for removable
-      'hover:shadow-sm': isRemovable,
-      'pr-1.5': isRemovable,
-    }
+    status === 'completed' && school === 'udel' && 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    (status === 'completed' && school === 'brookdale') && 'bg-cyan-50 border-cyan-200 text-cyan-800',
+    status === 'in_progress' && 'bg-amber-50 border-amber-200 text-amber-800',
+    status === 'planned' && school === 'udel' && 'bg-blue-50 border-blue-200 text-blue-800',
+    status === 'planned' && school === 'brookdale' && 'bg-sky-50 border-sky-200 text-sky-800',
+    status === 'transfer' && 'bg-teal-50 border-teal-200 text-teal-800',
+    isRemovable && 'hover:shadow-sm pr-1.5'
   );
 
   const creditsBadgeClasses = cn(
