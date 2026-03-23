@@ -295,6 +295,9 @@ export function usePlan() {
           setPlan(loadedPlan);
           return loadedPlan;
         }
+        } catch {
+          // Supabase tables may not exist yet, fall through to localStorage
+        }
       }
 
       // Fallback to localStorage
