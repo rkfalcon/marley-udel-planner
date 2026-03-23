@@ -1,15 +1,13 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { CreditProgress } from '@/components/dashboard/credit-progress';
 import { RequirementsOverview } from '@/components/dashboard/requirements-overview';
 import { PlansList } from '@/components/dashboard/plans-list';
 import { MARLEY_PROFILE } from '@/lib/data/marley-progress';
 import {
   GraduationCap,
-  User,
   BookOpen,
   ArrowRight,
   MapPin,
@@ -56,26 +54,20 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
 
-        {/* ── Hero / Profile Section ── */}
+        {/* Hero / Profile Section */}
         <section>
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 text-white overflow-hidden relative">
-            {/* Decorative circles */}
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-[#00539F] via-blue-600 to-indigo-700 text-white overflow-hidden relative">
             <div className="absolute -top-12 -right-12 w-56 h-56 rounded-full bg-white/5" />
             <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-white/5" />
 
             <CardContent className="relative px-6 sm:px-8 py-8">
               <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-                {/* Avatar */}
                 <div className="flex-shrink-0 w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-inner">
                   <span className="text-3xl font-bold text-white select-none">
-                    {MARLEY_PROFILE.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')}
+                    {MARLEY_PROFILE.name.split(' ').map((n) => n[0]).join('')}
                   </span>
                 </div>
 
-                {/* Name + details */}
                 <div className="flex-1 min-w-0 space-y-3">
                   <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
@@ -102,7 +94,6 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Advisor + catalog info */}
                 <div className="sm:text-right text-sm space-y-1.5">
                   <p className="text-blue-200 text-xs uppercase tracking-wide font-medium">
                     Academic Advisor
@@ -120,27 +111,35 @@ export default function DashboardPage() {
           </Card>
         </section>
 
-        {/* ── Quick Actions ── */}
+        {/* Quick Actions */}
         <section>
           <div className="flex flex-wrap gap-3">
-            <Button asChild variant="outline" className="border-slate-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-colors shadow-sm">
-              <Link href="/requirements">
-                <BookOpen className="w-4 h-4 mr-2" />
-                View All Requirements
-                <ChevronRight className="w-3.5 h-3.5 ml-1 opacity-60" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 transition-colors shadow-sm">
-              <Link href="/transfer">
-                <ArrowRight className="w-4 h-4 mr-2" />
-                Brookdale Transfer Lookup
-                <ChevronRight className="w-3.5 h-3.5 ml-1 opacity-60" />
-              </Link>
-            </Button>
+            <Link
+              href="/requirements"
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'border-slate-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-colors shadow-sm'
+              )}
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
+              View All Requirements
+              <ChevronRight className="w-3.5 h-3.5 ml-1 opacity-60" />
+            </Link>
+            <Link
+              href="/transfer"
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 transition-colors shadow-sm'
+              )}
+            >
+              <ArrowRight className="w-4 h-4 mr-2" />
+              Brookdale Transfer Lookup
+              <ChevronRight className="w-3.5 h-3.5 ml-1 opacity-60" />
+            </Link>
           </div>
         </section>
 
-        {/* ── Credit Progress ── */}
+        {/* Credit Progress */}
         <section>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <Card className="lg:col-span-2 border-slate-100 shadow-sm">
@@ -158,7 +157,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Degree milestones */}
             <Card className="lg:col-span-3 border-slate-100 shadow-sm">
               <CardHeader className="pb-2 px-6 pt-6">
                 <CardTitle className="text-base font-semibold text-slate-800">
@@ -171,33 +169,11 @@ export default function DashboardPage() {
               <CardContent className="px-6 pb-6">
                 <div className="space-y-3">
                   {[
-                    {
-                      label: 'First Year Seminar',
-                      detail: 'UNIV 101',
-                      done: true,
-                    },
-                    {
-                      label: 'First-Year Writing',
-                      detail: 'ENGL 110 — Spring 2026',
-                      done: false,
-                      inProgress: true,
-                    },
-                    {
-                      label: 'Intro to Cognitive Science',
-                      detail: 'CGSC 170 — Spring 2026',
-                      done: false,
-                      inProgress: true,
-                    },
-                    {
-                      label: 'Discovery Learning Experience (DLE)',
-                      detail: 'Not yet scheduled',
-                      done: false,
-                    },
-                    {
-                      label: 'CGSC Senior Capstone',
-                      detail: 'CGSC 467 — Future',
-                      done: false,
-                    },
+                    { label: 'First Year Seminar', detail: 'UNIV 101', done: true },
+                    { label: 'First-Year Writing', detail: 'ENGL 110 — Spring 2026', done: false, inProgress: true },
+                    { label: 'Intro to Cognitive Science', detail: 'CGSC 170 — Spring 2026', done: false, inProgress: true },
+                    { label: 'Discovery Learning Experience (DLE)', detail: 'Not yet scheduled', done: false },
+                    { label: 'PPSLP Capstone', detail: 'CGSC 380 — Future', done: false },
                   ].map((m, i) => (
                     <div key={i} className="flex items-start gap-3">
                       <div
@@ -212,26 +188,13 @@ export default function DashboardPage() {
                       >
                         {m.done && (
                           <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
-                            <path
-                              d="M2 6l3 3 5-5"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
+                            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         )}
-                        {m.inProgress && (
-                          <div className="w-2 h-2 rounded-full bg-amber-400" />
-                        )}
+                        {m.inProgress && <div className="w-2 h-2 rounded-full bg-amber-400" />}
                       </div>
                       <div className="min-w-0">
-                        <p
-                          className={cn(
-                            'text-sm font-medium',
-                            m.done ? 'text-slate-500 line-through' : 'text-slate-700'
-                          )}
-                        >
+                        <p className={cn('text-sm font-medium', m.done ? 'text-slate-500 line-through' : 'text-slate-700')}>
                           {m.label}
                         </p>
                         <p className="text-xs text-slate-400">{m.detail}</p>
@@ -244,44 +207,41 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* ── Requirements Overview ── */}
+        {/* Requirements Overview */}
         <section className="space-y-4">
           <SectionHeader
             title="Requirements Overview"
             description="Progress across all degree requirement categories"
             action={
-              <Button asChild variant="ghost" size="sm" className="text-slate-500 hover:text-blue-600 -mt-0.5">
-                <Link href="/requirements">
-                  View all
-                  <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
-                </Link>
-              </Button>
+              <Link
+                href="/requirements"
+                className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-slate-500 hover:text-blue-600 -mt-0.5')}
+              >
+                View all
+                <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+              </Link>
             }
           />
           <RequirementsOverview />
         </section>
 
-        {/* ── Saved Plans ── */}
+        {/* Saved Plans */}
         <section className="space-y-4">
           <SectionHeader
             title="Degree Plans"
             description="Your saved graduation roadmaps"
             action={
-              <Button asChild variant="ghost" size="sm" className="text-slate-500 hover:text-blue-600 -mt-0.5">
-                <Link href="/plan/new">
-                  New plan
-                  <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
-                </Link>
-              </Button>
+              <Link
+                href="/plan/new"
+                className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-slate-500 hover:text-blue-600 -mt-0.5')}
+              >
+                New plan
+                <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+              </Link>
             }
           />
           <PlansList />
         </section>
-
-        {/* ── Footer ── */}
-        <footer className="pt-4 pb-8 text-center text-xs text-slate-400 border-t border-slate-100">
-          University of Delaware &middot; {MARLEY_PROFILE.major} &middot; Catalog {MARLEY_PROFILE.catalogTerm}
-        </footer>
       </div>
     </div>
   );
