@@ -7,11 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SemesterCard } from './semester-card';
 import { CoursePicker } from './course-picker';
-import { Plan, PlanSemester, Course } from '@/lib/types';
+import { Plan, PlanSemester, PlanCourse, Course } from '@/lib/types';
 
 interface PlanGridProps {
   plan: Plan;
-  onAddCourse: (semesterId: string, course: Omit<import('@/lib/types').PlanCourse, 'id' | 'planSemesterId'>) => void;
+  onAddCourse: (semesterId: string, course: Omit<PlanCourse, 'id' | 'planSemesterId'>) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
 }
 
