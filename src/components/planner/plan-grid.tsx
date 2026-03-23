@@ -8,7 +8,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { SemesterCard } from './semester-card';
 import { CoursePicker } from './course-picker';
 import { Plan, PlanSemester, Course } from '@/lib/types';
-import { getCourseByCode } from '@/lib/data/courses';
 
 interface PlanGridProps {
   plan: Plan;
