@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Plan, PlanSemester, PlanCourse, Term } from '@/lib/types';
+import { Plan, PlanSemester, PlanCourse, Term, School, CourseStatus } from '@/lib/types';
 import { COMPLETED_COURSES } from '@/lib/data/marley-progress';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 
