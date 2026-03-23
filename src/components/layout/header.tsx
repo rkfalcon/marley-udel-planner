@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GraduationCap, Menu, BookOpen, Calendar, ArrowRightLeft, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -47,20 +48,17 @@ export function Header() {
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-1">
           {navLinks.map(({ href, label, icon: Icon }) => (
-            <Button
+            <Link
               key={href}
-              variant="ghost"
-              asChild
+              href={href}
               className={cn(
-                "text-white hover:bg-white/20 hover:text-white gap-1.5 font-medium transition-colors",
-                isActive(href) && "bg-white/25 text-white underline underline-offset-4"
+                "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-colors",
+                isActive(href) && "bg-white/25 underline underline-offset-4"
               )}
             >
-              <Link href={href}>
-                <Icon className="h-4 w-4" />
-                {label}
-              </Link>
-            </Button>
+              <Icon className="h-4 w-4" />
+              {label}
+            </Link>
           ))}
         </nav>
 
@@ -86,21 +84,17 @@ export function Header() {
               </SheetHeader>
               <nav className="flex flex-col gap-1">
                 {navLinks.map(({ href, label, icon: Icon }) => (
-                  <Button
+                  <Link
                     key={href}
-                    variant="ghost"
-                    asChild
+                    href={href}
                     className={cn(
-                      "justify-start gap-2 text-gray-700 hover:text-[#00539F] hover:bg-blue-50 font-medium",
-                      isActive(href) &&
-                        "bg-blue-50 text-[#00539F] font-semibold"
+                      "inline-flex items-center justify-start gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-[#00539F] hover:bg-blue-50 transition-colors",
+                      isActive(href) && "bg-blue-50 text-[#00539F] font-semibold"
                     )}
                   >
-                    <Link href={href}>
-                      <Icon className="h-4 w-4" />
-                      {label}
-                    </Link>
-                  </Button>
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </Link>
                 ))}
               </nav>
             </SheetContent>
