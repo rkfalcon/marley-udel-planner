@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   Save,
-  Share2,
   Copy,
   CheckCheck,
   GraduationCap,
