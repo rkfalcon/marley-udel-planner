@@ -164,7 +164,7 @@ export default function NewPlanPage() {
               </Label>
               <Select
                 value={targetGraduation}
-                onValueChange={setTargetGraduation}
+                onValueChange={(val) => { if (val) setTargetGraduation(val); }}
               >
                 <SelectTrigger className="border-slate-200 focus:border-blue-300 h-10">
                   <Calendar className="h-4 w-4 text-slate-400 mr-2" />
