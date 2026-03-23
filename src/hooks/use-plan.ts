@@ -286,7 +286,7 @@ export function usePlan() {
                 title: c.title as string || '',
                 school: c.school as string,
                 credits: c.credits as number,
-                status: c.status as string,
+                status: c.status as CourseStatus,
                 grade: c.grade as string | undefined,
                 notes: c.notes as string | undefined,
               })),
