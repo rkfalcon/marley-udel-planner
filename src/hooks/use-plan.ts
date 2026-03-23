@@ -284,7 +284,7 @@ export function usePlan() {
                 planSemesterId: c.plan_semester_id as string,
                 courseCode: c.course_code as string,
                 title: c.title as string || '',
-                school: c.school as string,
+                school: c.school as School,
                 credits: c.credits as number,
                 status: c.status as CourseStatus,
                 grade: c.grade as string | undefined,
