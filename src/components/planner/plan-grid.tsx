@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { GraduationCap, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { SemesterCard } from './semester-card';
 import { CoursePicker } from './course-picker';
 import { Plan, PlanSemester, PlanCourse, Course } from '@/lib/types';
