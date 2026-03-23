@@ -248,14 +248,14 @@ export function usePlan() {
     setError(null);
     try {
       if (isSupabaseConfigured()) {
+        try {
         const { data, error: sbError } = await supabase
           .from('plans')
           .select('*')
           .eq('slug', slug)
           .single();
 
-        if (sbError) throw sbError;
-        if (data) {
+        if (!sbError && data) {
           // Load semesters and courses
           const { data: semesters } = await supabase
             .from('plan_semesters')
