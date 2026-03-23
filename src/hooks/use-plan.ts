@@ -275,7 +275,7 @@ export function usePlan() {
             semesters: (semesters || []).map((s: Record<string, unknown>) => ({
               id: s.id as string,
               planId: s.plan_id as string,
-              term: s.term as string,
+              term: s.term as Term,
               year: s.year as number,
               school: s.school as string,
               sortOrder: s.sort_order as number,
