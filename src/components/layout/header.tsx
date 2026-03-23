@@ -65,15 +65,11 @@ export function Header() {
         {/* Mobile Hamburger */}
         <div className="md:hidden">
           <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20 hover:text-white"
-                aria-label="Open navigation menu"
-              >
-                <Menu className="h-6 w-6" />
-              </Button>
+            <SheetTrigger
+              className="inline-flex items-center justify-center rounded-lg p-2 text-white hover:bg-white/20 transition-colors"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="h-6 w-6" />
             </SheetTrigger>
             <SheetContent side="right" className="w-64 bg-white">
               <SheetHeader className="mb-6">
