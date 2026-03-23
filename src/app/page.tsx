@@ -1,65 +1,288 @@
-import Image from "next/image";
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { CreditProgress } from '@/components/dashboard/credit-progress';
+import { RequirementsOverview } from '@/components/dashboard/requirements-overview';
+import { PlansList } from '@/components/dashboard/plans-list';
+import { MARLEY_PROFILE } from '@/lib/data/marley-progress';
+import {
+  GraduationCap,
+  User,
+  BookOpen,
+  ArrowRight,
+  MapPin,
+  Star,
+  Briefcase,
+  ChevronRight,
+} from 'lucide-react';
 
-export default function Home() {
+function ProfileBadge({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full',
+        className
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+function SectionHeader({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <h2 className="text-lg font-semibold text-slate-800">{title}</h2>
+        {description && <p className="text-sm text-slate-500 mt-0.5">{description}</p>}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+
+        {/* ── Hero / Profile Section ── */}
+        <section>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 text-white overflow-hidden relative">
+            {/* Decorative circles */}
+            <div className="absolute -top-12 -right-12 w-56 h-56 rounded-full bg-white/5" />
+            <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-white/5" />
+
+            <CardContent className="relative px-6 sm:px-8 py-8">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                {/* Avatar */}
+                <div className="flex-shrink-0 w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-inner">
+                  <span className="text-3xl font-bold text-white select-none">
+                    {MARLEY_PROFILE.name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')}
+                  </span>
+                </div>
+
+                {/* Name + details */}
+                <div className="flex-1 min-w-0 space-y-3">
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                      {MARLEY_PROFILE.name}
+                    </h1>
+                    <p className="text-blue-200 text-sm mt-0.5">
+                      {MARLEY_PROFILE.major} &middot; {MARLEY_PROFILE.level}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <ProfileBadge className="bg-white/15 text-blue-50 border border-white/20">
+                      <MapPin className="w-3 h-3" />
+                      {MARLEY_PROFILE.campus} Campus
+                    </ProfileBadge>
+                    <ProfileBadge className="bg-white/15 text-blue-50 border border-white/20">
+                      <Star className="w-3 h-3 fill-current" />
+                      GPA {MARLEY_PROFILE.cgpa.toFixed(3)}
+                    </ProfileBadge>
+                    <ProfileBadge className="bg-white/15 text-blue-50 border border-white/20">
+                      <Briefcase className="w-3 h-3" />
+                      {MARLEY_PROFILE.specialization}
+                    </ProfileBadge>
+                  </div>
+                </div>
+
+                {/* Advisor + catalog info */}
+                <div className="sm:text-right text-sm space-y-1.5">
+                  <p className="text-blue-200 text-xs uppercase tracking-wide font-medium">
+                    Academic Advisor
+                  </p>
+                  <p className="text-white font-semibold">{MARLEY_PROFILE.advisor}</p>
+                  <p className="text-blue-300 text-xs">
+                    Catalog: {MARLEY_PROFILE.catalogTerm}
+                  </p>
+                  <p className="text-blue-300 text-xs">
+                    ID: {MARLEY_PROFILE.studentId}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ── Quick Actions ── */}
+        <section>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild variant="outline" className="border-slate-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-colors shadow-sm">
+              <Link href="/requirements">
+                <BookOpen className="w-4 h-4 mr-2" />
+                View All Requirements
+                <ChevronRight className="w-3.5 h-3.5 ml-1 opacity-60" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 transition-colors shadow-sm">
+              <Link href="/transfer">
+                <ArrowRight className="w-4 h-4 mr-2" />
+                Brookdale Transfer Lookup
+                <ChevronRight className="w-3.5 h-3.5 ml-1 opacity-60" />
+              </Link>
+            </Button>
+          </div>
+        </section>
+
+        {/* ── Credit Progress ── */}
+        <section>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <Card className="lg:col-span-2 border-slate-100 shadow-sm">
+              <CardHeader className="pb-2 px-6 pt-6">
+                <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
+                  <GraduationCap className="w-4.5 h-4.5 text-blue-500" />
+                  Credit Progress
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  {MARLEY_PROFILE.totalCreditsRequired} total credits required
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="px-6 pb-6">
+                <CreditProgress />
+              </CardContent>
+            </Card>
+
+            {/* Degree milestones */}
+            <Card className="lg:col-span-3 border-slate-100 shadow-sm">
+              <CardHeader className="pb-2 px-6 pt-6">
+                <CardTitle className="text-base font-semibold text-slate-800">
+                  Degree Milestones
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Key checkpoints for {MARLEY_PROFILE.major}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="px-6 pb-6">
+                <div className="space-y-3">
+                  {[
+                    {
+                      label: 'First Year Seminar',
+                      detail: 'UNIV 101',
+                      done: true,
+                    },
+                    {
+                      label: 'First-Year Writing',
+                      detail: 'ENGL 110 — Spring 2026',
+                      done: false,
+                      inProgress: true,
+                    },
+                    {
+                      label: 'Intro to Cognitive Science',
+                      detail: 'CGSC 170 — Spring 2026',
+                      done: false,
+                      inProgress: true,
+                    },
+                    {
+                      label: 'Discovery Learning Experience (DLE)',
+                      detail: 'Not yet scheduled',
+                      done: false,
+                    },
+                    {
+                      label: 'CGSC Senior Capstone',
+                      detail: 'CGSC 467 — Future',
+                      done: false,
+                    },
+                  ].map((m, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div
+                        className={cn(
+                          'mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0',
+                          m.done
+                            ? 'bg-green-500 border-green-500'
+                            : m.inProgress
+                            ? 'border-amber-400 bg-amber-50'
+                            : 'border-slate-200 bg-white'
+                        )}
+                      >
+                        {m.done && (
+                          <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+                            <path
+                              d="M2 6l3 3 5-5"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        )}
+                        {m.inProgress && (
+                          <div className="w-2 h-2 rounded-full bg-amber-400" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p
+                          className={cn(
+                            'text-sm font-medium',
+                            m.done ? 'text-slate-500 line-through' : 'text-slate-700'
+                          )}
+                        >
+                          {m.label}
+                        </p>
+                        <p className="text-xs text-slate-400">{m.detail}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* ── Requirements Overview ── */}
+        <section className="space-y-4">
+          <SectionHeader
+            title="Requirements Overview"
+            description="Progress across all degree requirement categories"
+            action={
+              <Button asChild variant="ghost" size="sm" className="text-slate-500 hover:text-blue-600 -mt-0.5">
+                <Link href="/requirements">
+                  View all
+                  <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                </Link>
+              </Button>
+            }
+          />
+          <RequirementsOverview />
+        </section>
+
+        {/* ── Saved Plans ── */}
+        <section className="space-y-4">
+          <SectionHeader
+            title="Degree Plans"
+            description="Your saved graduation roadmaps"
+            action={
+              <Button asChild variant="ghost" size="sm" className="text-slate-500 hover:text-blue-600 -mt-0.5">
+                <Link href="/plan/new">
+                  New plan
+                  <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                </Link>
+              </Button>
+            }
+          />
+          <PlansList />
+        </section>
+
+        {/* ── Footer ── */}
+        <footer className="pt-4 pb-8 text-center text-xs text-slate-400 border-t border-slate-100">
+          University of Delaware &middot; {MARLEY_PROFILE.major} &middot; Catalog {MARLEY_PROFILE.catalogTerm}
+        </footer>
+      </div>
     </div>
   );
 }
