@@ -104,6 +104,10 @@ export default function NewPlanPage() {
     setError('');
 
     const plan = createPlan(name.trim(), targetGraduation, isEarlyGraduation);
+    // Save to localStorage immediately so the plan page can load it
+    const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
+    plans[plan.slug] = plan;
+    localStorage.setItem('udel-plans', JSON.stringify(plans));
     router.push(`/plan/${plan.slug}`);
   };
 
