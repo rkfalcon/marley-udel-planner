@@ -264,34 +264,17 @@ export function usePlan() {
 
   const getAllPlans = useCallback(async () => {
     try {
-      if (isSupabaseConfigured()) {
-        const { data } = await supabase
-          .from('plans')
-          .select('id, name, slug, target_graduation, is_early_graduation, created_at, updated_at')
-          .order('updated_at', { ascending: false });
-        return (data || []).map((d: Record<string, unknown>) => ({
-          id: d.id as string,
-          name: d.name as string,
-          slug: d.slug as string,
-          targetGraduation: d.target_graduation as string,
-          isEarlyGraduation: d.is_early_graduation as boolean,
-          createdAt: d.created_at as string,
-          updatedAt: d.updated_at as string,
-        }));
-      }
-
-      // localStorage fallback
       const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
       return Object.values(plans).map((p: unknown) => {
-        const plan = p as Plan;
+        const planEntry = p as Plan & { pin?: string };
         return {
-          id: plan.id,
-          name: plan.name,
-          slug: plan.slug,
-          targetGraduation: plan.targetGraduation,
-          isEarlyGraduation: plan.isEarlyGraduation,
-          createdAt: plan.createdAt,
-          updatedAt: plan.updatedAt,
+          id: planEntry.id,
+          name: planEntry.name,
+          slug: planEntry.slug,
+          targetGraduation: planEntry.targetGraduation,
+          isEarlyGraduation: planEntry.isEarlyGraduation,
+          createdAt: planEntry.createdAt,
+          updatedAt: planEntry.updatedAt,
         };
       });
     } catch {
