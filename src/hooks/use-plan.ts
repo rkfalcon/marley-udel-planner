@@ -104,20 +104,15 @@ function createPastSemesters(): PlanSemester[] {
   ];
 }
 
-function createFutureSemesters(targetGrad: string, includeBreaks: boolean = true): PlanSemester[] {
+function createFutureSemesters(targetGrad: string): PlanSemester[] {
   const semesters: PlanSemester[] = [];
   const terms: { term: Term; year: number }[] = [];
 
-  // Parse target graduation (e.g., "Spring 2028")
   const [targetTerm, targetYearStr] = targetGrad.split(' ');
   const targetYear = parseInt(targetYearStr);
 
-  // Generate semesters from Summer 2026 to target
-  let year = 2026;
   const startTerms: Term[] = ['Summer', 'Fall'];
-  const fullTerms: Term[] = includeBreaks
-    ? ['Winter', 'Spring', 'Summer', 'Fall']
-    : ['Spring', 'Fall'];
+  const fullTerms: Term[] = ['Winter', 'Spring', 'Summer', 'Fall'];
 
   for (const term of startTerms) {
     terms.push({ term, year: 2026 });
@@ -141,7 +136,7 @@ function createFutureSemesters(targetGrad: string, includeBreaks: boolean = true
       planId: '',
       term,
       year,
-      school: school,
+      school: school as School,
       sortOrder: sortOrder++,
       courses: [],
     });
@@ -213,46 +208,50 @@ export function usePlan() {
     });
   }, []);
 
-  const savePlan = useCallback(async (pin?: string, options?: { forceNew?: boolean }) => {
-    // Use ref to always get the latest plan state (avoids stale closure)
+  const savePlan = useCallback(async (pin?: string, options?: { action?: 'create' | 'update' | 'save_as_new' }) => {
     const currentPlan = planRef.current;
     if (!currentPlan) return null;
 
-    const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
-    const existingPlan = plans[currentPlan.slug];
+    const action = options?.action || 'create';
 
-    // PIN verification for existing plans (not forceNew)
-    if (existingPlan && !options?.forceNew) {
-      if (existingPlan.pin && pin !== existingPlan.pin) {
+    const response = await fetch('/api/plans', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: currentPlan, pin, action }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (data.error === 'WRONG_PIN') {
         throw new Error('WRONG_PIN');
       }
+      throw new Error(data.error || 'Failed to save plan');
     }
 
-    // Save to localStorage — preserve original pin for updates, use new pin for new plans
-    const pinToStore = options?.forceNew ? pin : (existingPlan?.pin || pin);
-    const updatedPlan = { ...currentPlan, updatedAt: new Date().toISOString() };
-    plans[currentPlan.slug] = { ...updatedPlan, pin: pinToStore };
-    localStorage.setItem('udel-plans', JSON.stringify(plans));
-
-    // Also update the in-memory plan state
-    setPlan(updatedPlan);
-
-    return currentPlan.slug;
+    return data.slug as string;
   }, []);
 
   const loadPlan = useCallback(async (slug: string) => {
     setLoading(true);
     setError(null);
     try {
-      // Load from localStorage (primary storage)
-      const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
-      if (plans[slug]) {
-        // Strip the pin before setting state (don't expose it)
-        const { pin: _pin, ...planData } = plans[slug];
-        setPlan(planData);
-        return planData;
+      const response = await fetch(`/api/plans?slug=${encodeURIComponent(slug)}`);
+
+      if (!response.ok) {
+        throw new Error('Plan not found');
       }
-      throw new Error('Plan not found');
+
+      const data = await response.json();
+
+      // The API returns the plan with semesters embedded in the description JSON
+      // The top-level fields are merged from the DB row + parsed JSON
+      if (data.semesters) {
+        setPlan(data as Plan);
+        return data as Plan;
+      }
+
+      throw new Error('Plan data is incomplete');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load plan');
       return null;
@@ -263,19 +262,18 @@ export function usePlan() {
 
   const getAllPlans = useCallback(async () => {
     try {
-      const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
-      return Object.values(plans).map((p: unknown) => {
-        const planEntry = p as Plan & { pin?: string };
-        return {
-          id: planEntry.id,
-          name: planEntry.name,
-          slug: planEntry.slug,
-          targetGraduation: planEntry.targetGraduation,
-          isEarlyGraduation: planEntry.isEarlyGraduation,
-          createdAt: planEntry.createdAt,
-          updatedAt: planEntry.updatedAt,
-        };
-      });
+      const response = await fetch('/api/plans');
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data as Array<{
+        id: string;
+        name: string;
+        slug: string;
+        targetGraduation: string;
+        isEarlyGraduation: boolean;
+        createdAt: string;
+        updatedAt: string;
+      }>;
     } catch {
       return [];
     }
