@@ -25,15 +25,18 @@ export function CourseChip({
   onRemove,
 }: CourseChipProps) {
   const isRemovable = onRemove && status === 'planned';
+  const isPlaceholder = courseCode.startsWith('ELEC');
+  const displayCode = isPlaceholder ? 'ELECTIVE' : courseCode;
 
   const containerClasses = cn(
     'group flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium border transition-all duration-150',
-    status === 'completed' && school === 'udel' && 'bg-emerald-50 border-emerald-200 text-emerald-800',
-    (status === 'completed' && school === 'brookdale') && 'bg-cyan-50 border-cyan-200 text-cyan-800',
-    status === 'in_progress' && 'bg-amber-50 border-amber-200 text-amber-800',
-    status === 'planned' && school === 'udel' && 'bg-blue-50 border-blue-200 text-blue-800',
-    status === 'planned' && school === 'brookdale' && 'bg-sky-50 border-sky-200 text-sky-800',
-    status === 'transfer' && 'bg-teal-50 border-teal-200 text-teal-800',
+    isPlaceholder && 'bg-orange-50 border-orange-300 text-orange-800 border-dashed',
+    !isPlaceholder && status === 'completed' && school === 'udel' && 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    !isPlaceholder && (status === 'completed' && school === 'brookdale') && 'bg-cyan-50 border-cyan-200 text-cyan-800',
+    !isPlaceholder && status === 'in_progress' && 'bg-amber-50 border-amber-200 text-amber-800',
+    !isPlaceholder && status === 'planned' && school === 'udel' && 'bg-blue-50 border-blue-200 text-blue-800',
+    !isPlaceholder && status === 'planned' && school === 'brookdale' && 'bg-sky-50 border-sky-200 text-sky-800',
+    !isPlaceholder && status === 'transfer' && 'bg-teal-50 border-teal-200 text-teal-800',
     isRemovable && 'hover:shadow-sm pr-1.5'
   );
 
