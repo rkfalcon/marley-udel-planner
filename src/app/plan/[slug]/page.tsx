@@ -234,7 +234,10 @@ export default function PlanEditorPage() {
           </Button>
 
           {/* Save dialog */}
-          <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+          <Dialog open={saveDialogOpen} onOpenChange={(open) => {
+            setSaveDialogOpen(open);
+            if (open) { setSaveMode(isExistingPlan ? 'choose' : 'choose'); setSavedSlug(null); setPin(''); setNewPlanName(''); setPinError(''); }
+          }}>
             <DialogTrigger
               className="inline-flex items-center gap-1.5 h-8 px-3 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors"
             >
