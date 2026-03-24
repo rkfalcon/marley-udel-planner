@@ -696,8 +696,8 @@ function PlaceholderElectiveEntry({
     onAdd({
       id: `placeholder-${Date.now()}`,
       school: 'udel',
-      courseCode: `ELEC ${String(placeholderCount).padStart(3, '0')}`,
-      title: `${displayLabel} (${cr}cr placeholder)`,
+      courseCode: `ELEC ${placeholderCount}`,
+      title: displayLabel,
       credits: cr,
     });
     setLabel('');
