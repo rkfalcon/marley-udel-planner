@@ -61,8 +61,8 @@ export default function PlanEditorPage() {
 
     loadPlan(slug).then((loaded) => {
       setInitialLoadDone(true);
-      if (!loaded) {
-        // Plan not found — could redirect or show error
+      if (loaded) {
+        setIsExistingPlan(true);
       }
     });
   }, [slug, loadPlan, router]);
