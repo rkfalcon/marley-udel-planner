@@ -121,9 +121,75 @@ function getRequirementStatus(
 
 export function useRequirements(plannedCourses: PlanCourse[] = []) {
   return useMemo(() => {
-    const requirementsWithStatus = REQUIREMENTS.map(req =>
-      getRequirementStatus(req, COMPLETED_COURSES, plannedCourses)
-    );
+    // Calculate total credits from all sources
+    const completedCredits = COMPLETED_COURSES
+      .filter(c => c.status === 'completed' || c.status === 'transfer')
+      .reduce((sum, c) => sum + c.credits, 0);
+    const inProgressCredits = COMPLETED_COURSES
+      .filter(c => c.status === 'in_progress')
+      .reduce((sum, c) => sum + c.credits, 0);
+    const plannedCredits = plannedCourses.reduce((sum, c) => sum + c.credits, 0);
+    const totalAllCredits = completedCredits + inProgressCredits + plannedCredits;
+    const creditsNeeded = Math.max(0, 124 - totalAllCredits);
+
+    // Compute non-elective requirement credits (sum of all requirements except free-elective)
+    const nonElectiveReqCredits = REQUIREMENTS
+      .filter(r => r.id !== 'free-elective')
+      .reduce((sum, r) => sum + r.creditsRequired, 0);
+
+    // Free elective credits needed = 124 - non-elective requirement credits
+    // This is the "gap" that must be filled by electives
+    const freeElectiveCreditsRequired = Math.max(0, 124 - nonElectiveReqCredits);
+
+    // Count how many elective credits are earned/planned (courses not fulfilling any other requirement)
+    // For simplicity, elective credits = total credits - credits from requirement-fulfilling courses
+    const electiveCreditsEarned = COMPLETED_COURSES
+      .filter(c => c.fulfillsRequirements?.includes('free-elective') && (c.status === 'completed' || c.status === 'transfer'))
+      .reduce((sum, c) => sum + c.credits, 0);
+    const electiveCreditsInProgress = COMPLETED_COURSES
+      .filter(c => c.fulfillsRequirements?.includes('free-elective') && c.status === 'in_progress')
+      .reduce((sum, c) => sum + c.credits, 0);
+    // Planned elective credits = planned courses that don't fulfill any specific requirement
+    // (i.e., courses from the "Additional Elective Courses" section or custom courses)
+    const plannedElectiveCredits = plannedCourses
+      .filter(c => {
+        // Check if this course fulfills any non-elective requirement
+        const udelEquiv = getUdelEquivalent(c.courseCode, c.school);
+        for (const req of REQUIREMENTS) {
+          if (req.id === 'free-elective') continue;
+          if (req.courseOptions?.includes(c.courseCode) || req.courseOptions?.includes(udelEquiv)) return false;
+          if (req.id === 'second-writing' && (secondWritingSet.has(c.courseCode) || secondWritingSet.has(udelEquiv))) return false;
+        }
+        return true; // This is a pure elective
+      })
+      .reduce((sum, c) => sum + c.credits, 0);
+
+    const totalElectiveCredits = electiveCreditsEarned + electiveCreditsInProgress + plannedElectiveCredits;
+
+    const requirementsWithStatus = REQUIREMENTS.map(req => {
+      if (req.id === 'free-elective') {
+        // Dynamic elective requirement
+        const dynamicReq = {
+          ...req,
+          creditsRequired: freeElectiveCreditsRequired,
+          description: `${creditsNeeded} more credits needed to reach 124 total (${totalElectiveCredits} elective credits earned/planned)`,
+        };
+
+        let electiveStatus: 'completed' | 'in_progress' | 'not_started' = 'not_started';
+        if (totalAllCredits >= 124) {
+          electiveStatus = 'completed';
+        } else if (totalElectiveCredits > 0) {
+          electiveStatus = 'in_progress';
+        }
+
+        return {
+          ...dynamicReq,
+          status: electiveStatus,
+          fulfilledBy: undefined,
+        } as RequirementWithStatus;
+      }
+      return getRequirementStatus(req, COMPLETED_COURSES, plannedCourses);
+    });
 
     const groups: RequirementGroup[] = REQUIREMENT_GROUPS.map(group => {
       const reqs = requirementsWithStatus
