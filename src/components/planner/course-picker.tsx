@@ -156,6 +156,35 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
         );
       }
 
+      // Special: free-elective should only show completed if total plan credits >= 124
+      if (req.id === 'free-elective') {
+        // Count all credits: completed + in-progress + planned
+        const completedCr = COMPLETED_COURSES
+          .filter(c => c.status === 'completed' || c.status === 'transfer')
+          .reduce((s, c) => s + c.credits, 0);
+        const inProgressCr = COMPLETED_COURSES
+          .filter(c => c.status === 'in_progress')
+          .reduce((s, c) => s + c.credits, 0);
+        // Count planned credits from plannedCodes (approximate: 3 credits each)
+        const plannedCr = plannedCodes.size * 3;
+        const totalCr = completedCr + inProgressCr + plannedCr;
+        const remaining = Math.max(0, 124 - totalCr);
+
+        if (totalCr >= 124) {
+          status = 'completed';
+        } else if (totalCr > completedCr + inProgressCr) {
+          // Has some planned courses
+          status = 'in_progress';
+        } else {
+          status = electiveCreditsEarned > 0 ? 'in_progress' : 'not_started';
+        }
+
+        const dynamicName = remaining > 0
+          ? `Free Electives (${remaining} more credits needed)`
+          : 'Free Electives';
+        return { id: req.id, name: dynamicName, status, courses };
+      }
+
       return { id: req.id, name: req.name, status, courses };
     }).filter(r => {
       // If searching, only show requirements that have matching courses
