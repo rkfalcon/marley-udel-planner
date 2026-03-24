@@ -554,7 +554,7 @@ export function CoursePicker({
           </div>
         </div>
 
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto">
           {activeSchool === 'udel' ? (
             /* ====== UDel: requirement-organized view ====== */
             <div className="px-4 pb-5 space-y-1">
