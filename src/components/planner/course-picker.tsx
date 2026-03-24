@@ -138,6 +138,8 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
     }).filter(r => {
       // If searching, only show requirements that have matching courses
       if (q) return r.courses.length > 0;
+      // Hide requirements that are already completed or in-progress (fulfilled)
+      // Keep them visible but collapsed so user can see status
       return true;
     });
 
