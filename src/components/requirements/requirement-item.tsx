@@ -95,7 +95,7 @@ export function RequirementItem({ requirement }: RequirementItemProps) {
         )}
 
         {/* Fulfillment info */}
-        {(status === 'completed' || status === 'in_progress') && fulfilledBy ? (
+        {(status === 'completed' || status === 'in_progress') && fulfilledBy && !isElective ? (
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             <Badge
               variant="outline"
@@ -125,8 +125,22 @@ export function RequirementItem({ requirement }: RequirementItemProps) {
             )}
           </div>
         ) : isElective ? (
-          /* Elective course suggestions */
+          /* Elective course suggestions — always shown for electives */
           <div className="mt-2 space-y-3">
+            {/* Show already-earned elective credits */}
+            {fulfilledBy && (
+              <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                <Badge variant="outline" className="text-xs border-green-200 bg-green-100 text-green-800">
+                  {fulfilledBy.courseCode}
+                </Badge>
+                <span className="text-xs text-muted-foreground">{fulfilledBy.title}</span>
+                {'grade' in fulfilledBy && fulfilledBy.grade && (
+                  <span className="text-xs font-semibold text-green-700">{fulfilledBy.grade}</span>
+                )}
+              </div>
+            )}
+
+            <p className="text-xs font-medium text-muted-foreground">Suggested elective courses:</p>
             {Object.entries(ELECTIVE_SUGGESTIONS).map(([groupName, courses]) => (
               <div key={groupName}>
                 <div className="flex items-center gap-1.5 mb-1.5">
