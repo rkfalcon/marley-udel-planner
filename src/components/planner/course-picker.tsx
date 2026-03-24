@@ -197,14 +197,38 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
 
     if (reqItems.length > 0) {
       const fulfilledCount = reqItems.filter(r => r.status === 'completed' || r.status === 'in_progress').length;
-      sections.push({
-        category: group.category,
-        label: group.label,
-        description: group.description,
-        fulfilledCount,
-        totalCount: reqItems.length,
-        requirements: reqItems,
-      });
+
+      // For electives, don't show misleading 1/1 — show credit-based info
+      if (group.category === 'elective') {
+        const completedCr = COMPLETED_COURSES
+          .filter(c => c.status === 'completed' || c.status === 'transfer')
+          .reduce((s, c) => s + c.credits, 0);
+        const inProgressCr = COMPLETED_COURSES
+          .filter(c => c.status === 'in_progress')
+          .reduce((s, c) => s + c.credits, 0);
+        const plannedCr = plannedCodes.size * 3;
+        const totalCr = completedCr + inProgressCr + plannedCr;
+        const remaining = Math.max(0, 124 - totalCr);
+        const isComplete = totalCr >= 124;
+
+        sections.push({
+          category: group.category,
+          label: isComplete ? 'Electives' : `Electives (${remaining}cr needed)`,
+          description: group.description,
+          fulfilledCount: isComplete ? 1 : 0,
+          totalCount: 1,
+          requirements: reqItems,
+        });
+      } else {
+        sections.push({
+          category: group.category,
+          label: group.label,
+          description: group.description,
+          fulfilledCount,
+          totalCount: reqItems.length,
+          requirements: reqItems,
+        });
+      }
     }
   }
 
