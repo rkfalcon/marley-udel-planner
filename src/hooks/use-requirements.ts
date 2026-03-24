@@ -99,9 +99,14 @@ export function useRequirements(plannedCourses: PlanCourse[] = []) {
         .sort((a, b) => a.sortOrder - b.sortOrder);
 
       const completedCount = reqs.filter(r => r.status === 'completed').length;
+      // fulfilledCount = completed + in_progress that have a fulfilledBy course (i.e., a course is assigned)
+      const fulfilledCount = reqs.filter(r => r.status === 'completed' || (r.status === 'in_progress' && r.fulfilledBy)).length;
       const totalCount = reqs.length;
       const completedCredits = reqs
         .filter(r => r.status === 'completed')
+        .reduce((sum, r) => sum + r.creditsRequired, 0);
+      const fulfilledCredits = reqs
+        .filter(r => r.status === 'completed' || (r.status === 'in_progress' && r.fulfilledBy))
         .reduce((sum, r) => sum + r.creditsRequired, 0);
       const totalCredits = reqs.reduce((sum, r) => sum + r.creditsRequired, 0);
 
@@ -109,8 +114,10 @@ export function useRequirements(plannedCourses: PlanCourse[] = []) {
         ...group,
         requirements: reqs,
         completedCount,
+        fulfilledCount,
         totalCount,
         completedCredits,
+        fulfilledCredits,
         totalCredits,
       };
     });
