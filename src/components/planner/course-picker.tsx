@@ -415,157 +415,103 @@ export function CoursePicker({
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="px-4 pb-5 space-y-1">
-            {sections.map((section) => {
-              const isSectionExpanded = isSearching || expandedSections.has(section.category);
-              const completedReqs = section.requirements.filter(r => r.status === 'completed').length;
-              const totalReqs = section.requirements.length;
-              const allDone = completedReqs === totalReqs;
+          {activeSchool === 'udel' ? (
+            /* ====== UDel: requirement-organized view ====== */
+            <div className="px-4 pb-5 space-y-1">
+              {sections.map((section) => {
+                const isSectionExpanded = isSearching || expandedSections.has(section.category);
+                const completedReqs = section.requirements.filter(r => r.status === 'completed').length;
+                const totalReqs = section.requirements.length;
+                const allDone = completedReqs === totalReqs;
 
-              return (
-                <div key={section.category} className="rounded-lg border border-slate-100 overflow-hidden">
-                  {/* Category header */}
-                  <button
-                    onClick={() => toggleSection(section.category)}
-                    className={cn(
-                      'w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors',
-                      'hover:bg-slate-50',
-                      allDone && 'bg-green-50/50'
+                return (
+                  <div key={section.category} className="rounded-lg border border-slate-100 overflow-hidden">
+                    <button
+                      onClick={() => toggleSection(section.category)}
+                      className={cn(
+                        'w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-slate-50',
+                        allDone && 'bg-green-50/50'
+                      )}
+                    >
+                      {isSectionExpanded ? <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />}
+                      <span className="text-sm font-semibold text-slate-700 flex-1">{section.label}</span>
+                      <span className={cn('text-xs font-medium tabular-nums', allDone ? 'text-green-600' : completedReqs > 0 ? 'text-amber-600' : 'text-slate-400')}>
+                        {completedReqs}/{totalReqs}
+                      </span>
+                    </button>
+
+                    {isSectionExpanded && (
+                      <div className="border-t border-slate-100">
+                        {section.requirements.map((req) => {
+                          const isReqExpanded = isSearching || expandedReqs.has(req.id);
+                          const statusIcon = req.status === 'completed'
+                            ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                            : req.status === 'in_progress'
+                            ? <Clock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                            : <Circle className="h-3.5 w-3.5 text-slate-300 shrink-0" />;
+
+                          return (
+                            <div key={req.id}>
+                              <button
+                                onClick={() => toggleReq(req.id)}
+                                className={cn('w-full flex items-center gap-2 px-4 py-2 text-left transition-colors hover:bg-slate-50/80', req.status === 'completed' && 'bg-green-50/30')}
+                              >
+                                {statusIcon}
+                                <span className={cn('flex-1 text-xs font-medium leading-tight', req.status === 'completed' ? 'text-green-700 line-through' : 'text-slate-600')}>
+                                  {req.name}
+                                </span>
+                                {req.courses.length > 0 && (
+                                  <>
+                                    <Badge variant="outline" className="text-[10px] h-4 px-1.5 py-0 text-slate-400 border-slate-200">{req.courses.length}</Badge>
+                                    {isReqExpanded ? <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" /> : <ChevronRight className="h-3 w-3 text-slate-400 shrink-0" />}
+                                  </>
+                                )}
+                              </button>
+                              {isReqExpanded && req.courses.length > 0 && (
+                                <div className="px-4 pb-2 pl-9 space-y-1.5">
+                                  {req.courses.map((course) => (
+                                    <CourseButton key={course.id} course={course} onSelect={handleSelect} isPlanned={plannedSet.has(course.courseCode)} isCompleted={completedCodes.has(course.courseCode)} />
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
-                  >
-                    {isSectionExpanded ? (
-                      <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-semibold text-slate-700">{section.label}</span>
-                    </div>
-                    <span className={cn(
-                      'text-xs font-medium tabular-nums',
-                      allDone ? 'text-green-600' : completedReqs > 0 ? 'text-amber-600' : 'text-slate-400'
-                    )}>
-                      {completedReqs}/{totalReqs}
-                    </span>
+                  </div>
+                );
+              })}
+
+              {/* Additional elective courses */}
+              {electiveCourses.length > 0 && (
+                <div className="rounded-lg border border-slate-100 overflow-hidden">
+                  <button onClick={() => toggleSection('extra-electives')} className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors">
+                    {(isSearching || expandedSections.has('extra-electives')) ? <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />}
+                    <span className="text-sm font-semibold text-slate-700 flex-1">Additional Elective Courses</span>
+                    <Badge variant="outline" className="text-[10px] h-4 px-1.5 py-0 text-slate-400 border-slate-200">{electiveCourses.length}</Badge>
                   </button>
-
-                  {/* Expanded requirements */}
-                  {isSectionExpanded && (
-                    <div className="border-t border-slate-100">
-                      {section.requirements.map((req) => {
-                        const isReqExpanded = isSearching || expandedReqs.has(req.id);
-                        const statusIcon = req.status === 'completed' ? (
-                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
-                        ) : req.status === 'in_progress' ? (
-                          <Clock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                        ) : (
-                          <Circle className="h-3.5 w-3.5 text-slate-300 shrink-0" />
-                        );
-
-                        return (
-                          <div key={req.id}>
-                            {/* Requirement header */}
-                            <button
-                              onClick={() => toggleReq(req.id)}
-                              className={cn(
-                                'w-full flex items-center gap-2 px-4 py-2 text-left transition-colors',
-                                'hover:bg-slate-50/80',
-                                req.status === 'completed' && 'bg-green-50/30',
-                              )}
-                            >
-                              {statusIcon}
-                              <span className={cn(
-                                'flex-1 text-xs font-medium leading-tight',
-                                req.status === 'completed' ? 'text-green-700 line-through' : 'text-slate-600'
-                              )}>
-                                {req.name}
-                              </span>
-                              {req.courses.length > 0 && (
-                                <>
-                                  <Badge variant="outline" className="text-[10px] h-4 px-1.5 py-0 text-slate-400 border-slate-200">
-                                    {req.courses.length}
-                                  </Badge>
-                                  {isReqExpanded ? (
-                                    <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
-                                  ) : (
-                                    <ChevronRight className="h-3 w-3 text-slate-400 shrink-0" />
-                                  )}
-                                </>
-                              )}
-                            </button>
-
-                            {/* Course options */}
-                            {isReqExpanded && req.courses.length > 0 && (
-                              <div className="px-4 pb-2 pl-9 space-y-1.5">
-                                {req.courses.map((course) => (
-                                  <CourseButton
-                                    key={course.id}
-                                    course={course}
-                                    onSelect={handleSelect}
-                                    isPlanned={plannedSet.has(course.courseCode)}
-                                    isCompleted={completedCodes.has(course.courseCode)}
-                                  />
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                  {(isSearching || expandedSections.has('extra-electives')) && (
+                    <div className="border-t border-slate-100 px-4 py-2 space-y-1.5">
+                      {electiveCourses.map(course => (
+                        <CourseButton key={course.id} course={course} onSelect={handleSelect} isPlanned={plannedSet.has(course.courseCode)} isCompleted={completedCodes.has(course.courseCode)} />
+                      ))}
                     </div>
                   )}
                 </div>
-              );
-            })}
+              )}
 
-            {/* Additional elective courses */}
-            {electiveCourses.length > 0 && (
-              <div className="rounded-lg border border-slate-100 overflow-hidden">
-                <button
-                  onClick={() => toggleSection('extra-electives')}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
-                >
-                  {(isSearching || expandedSections.has('extra-electives')) ? (
-                    <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
-                  )}
-                  <span className="text-sm font-semibold text-slate-700 flex-1">
-                    Additional Elective Courses
-                  </span>
-                  <Badge variant="outline" className="text-[10px] h-4 px-1.5 py-0 text-slate-400 border-slate-200">
-                    {electiveCourses.length}
-                  </Badge>
-                </button>
-
-                {(isSearching || expandedSections.has('extra-electives')) && (
-                  <div className="border-t border-slate-100 px-4 py-2 space-y-1.5">
-                    {electiveCourses.map(course => (
-                      <CourseButton
-                        key={course.id}
-                        course={course}
-                        onSelect={handleSelect}
-                        isPlanned={plannedSet.has(course.courseCode)}
-                        isCompleted={completedCodes.has(course.courseCode)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Custom course entry */}
-            <CustomCourseEntry school={activeSchool} onAdd={handleSelect} />
-
-            {sections.length === 0 && electiveCourses.length === 0 && !query && (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Search className="h-8 w-8 text-slate-300 mb-3" />
-                <p className="text-sm font-medium text-slate-500">No courses found</p>
-                <p className="text-xs text-slate-400 mt-1">
-                  Try a different search term or switch schools
-                </p>
-              </div>
-            )}
-          </div>
+              <CustomCourseEntry school="udel" onAdd={handleSelect} />
+            </div>
+          ) : (
+            /* ====== Brookdale: flat transfer mapping list ====== */
+            <BrookdaleTransferList
+              query={query}
+              onSelect={handleSelect}
+              plannedCodes={plannedSet}
+              completedCodes={completedCodes}
+            />
+          )}
         </ScrollArea>
       </SheetContent>
     </Sheet>
