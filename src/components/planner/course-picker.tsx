@@ -973,6 +973,7 @@ export function CoursePicker({
               )}
 
               <CustomCourseEntry school="udel" onAdd={handleSelect} />
+              <PlaceholderElectiveEntry onAdd={handleSelect} />
             </div>
           ) : (
             /* ====== Brookdale: flat transfer mapping list ====== */
