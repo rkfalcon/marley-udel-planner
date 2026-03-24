@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import {
   Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
-  Clock, Star, ArrowRight, GraduationCap, Plus
+  Clock, Star, ArrowRight, GraduationCap, Plus, ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
