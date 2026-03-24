@@ -705,8 +705,8 @@ export function CoursePicker({
   const plannedSet = useMemo(() => new Set(plannedCourseCodes), [plannedCourseCodes]);
 
   const sections = useMemo(
-    () => buildRequirementSections(activeSchool, query, plannedSet),
-    [activeSchool, query, plannedSet]
+    () => buildRequirementSections(activeSchool, query, plannedSet, totalPlanCredits || 0),
+    [activeSchool, query, plannedSet, totalPlanCredits]
   );
 
   const electiveCourses = useMemo(
