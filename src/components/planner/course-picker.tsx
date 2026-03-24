@@ -49,10 +49,16 @@ function expandPlannedCodes(plannedCodes: Set<string>): Set<string> {
 }
 
 // Build a structured list of requirements with their course options
-function buildRequirementSections(school: 'udel' | 'brookdale', query: string, plannedCodes: Set<string> = new Set()) {
+function buildRequirementSections(school: 'udel' | 'brookdale', query: string, plannedCodes: Set<string> = new Set(), totalPlanCredits: number = 0) {
   const q = query.toLowerCase();
   // Expand planned codes so Brookdale courses match UDel requirement options
   const expandedPlannedCodes = expandPlannedCodes(plannedCodes);
+  // Total credits from completed + in-progress courses (from transcript)
+  const baseCredits = COMPLETED_COURSES
+    .filter(c => c.status === 'completed' || c.status === 'transfer' || c.status === 'in_progress')
+    .reduce((s, c) => s + c.credits, 0);
+  // Use the actual total plan credits passed in (which includes planned courses accurately)
+  const totalCreditsInPlan = totalPlanCredits > 0 ? totalPlanCredits : baseCredits;
 
   // Group requirements by category
   const sections: {
