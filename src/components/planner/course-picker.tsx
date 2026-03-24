@@ -69,11 +69,22 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
       }
 
       // Check if any planned course fulfills this requirement
-      if (status === 'not_started' && req.courseOptions) {
-        for (const code of req.courseOptions) {
-          if (plannedCodes.has(code)) {
-            status = 'in_progress';
-            break;
+      if (status === 'not_started') {
+        if (req.courseOptions) {
+          for (const code of req.courseOptions) {
+            if (plannedCodes.has(code)) {
+              status = 'in_progress';
+              break;
+            }
+          }
+        }
+        // Second writing: check if any planned course is in the approved list
+        if (req.id === 'second-writing') {
+          for (const code of plannedCodes) {
+            if (SECOND_WRITING_ALL_CODES.includes(code)) {
+              status = 'in_progress';
+              break;
+            }
           }
         }
       }
