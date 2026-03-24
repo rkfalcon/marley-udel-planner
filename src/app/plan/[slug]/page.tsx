@@ -102,7 +102,8 @@ export default function PlanEditorPage() {
     setPinError('');
     setSaveLoading(true);
     try {
-      const resultSlug = await savePlan(pin);
+      const action = isExistingPlan && saveMode === 'update' ? 'update' : 'create';
+      const resultSlug = await savePlan(pin, { action });
       if (resultSlug) {
         setSavedSlug(resultSlug);
         setSaveMode('done');
