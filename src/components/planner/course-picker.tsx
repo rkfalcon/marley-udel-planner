@@ -574,9 +574,9 @@ export function CoursePicker({
             <div className="px-4 pb-5 space-y-1">
               {sections.map((section) => {
                 const isSectionExpanded = isSearching || expandedSections.has(section.category);
-                const completedReqs = section.requirements.filter(r => r.status === 'completed').length;
-                const totalReqs = section.requirements.length;
-                const allDone = completedReqs === totalReqs;
+                const fulfilledReqs = section.fulfilledCount;
+                const totalReqs = section.totalCount;
+                const allDone = fulfilledReqs === totalReqs;
 
                 return (
                   <div key={section.category} className="rounded-lg border border-slate-100 overflow-hidden">
