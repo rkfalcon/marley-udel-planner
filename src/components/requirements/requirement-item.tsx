@@ -1,9 +1,44 @@
 'use client';
 
-import { CheckCircle2, Clock, Circle } from 'lucide-react';
+import { CheckCircle2, Clock, Circle, GraduationCap, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { RequirementWithStatus } from '@/lib/types';
+
+// Elective course suggestions grouped by type
+const ELECTIVE_SUGGESTIONS = {
+  'SLP-Related': [
+    { code: 'HDFS 201', title: 'Life Span Development', credits: 3, note: 'Currently taking Spring 2026' },
+    { code: 'HDFS 223', title: 'Foundations of Child Development', credits: 3 },
+    { code: 'PSYC 350', title: 'Developmental Psychology', credits: 3 },
+    { code: 'PSYC 314', title: 'Brain and Behavior', credits: 3 },
+    { code: 'NSCI 320', title: 'Introduction to Neuroscience', credits: 3 },
+    { code: 'LING 102', title: 'Language, Mind and Society', credits: 3 },
+  ],
+  'Cognitive Science': [
+    { code: 'CGSC 327', title: 'Diversity, Ethics, and Society', credits: 3 },
+    { code: 'CGSC 421', title: 'Philosophy, Biology, Society', credits: 3 },
+    { code: 'CGSC 402', title: 'Neurobiology of Language', credits: 3 },
+    { code: 'ANTH 205', title: 'What is Human Nature?', credits: 3 },
+    { code: 'PHIL 330', title: 'Philosophy of Mind', credits: 3 },
+  ],
+  'Brookdale CC Transfers': [
+    { code: 'COMM 101', title: 'Communication → COMM 100', credits: 3, note: 'Summer/Winter' },
+    { code: 'SPCH 115', title: 'Public Speaking → COMM 212', credits: 3, note: 'Summer/Winter' },
+    { code: 'SOCI 101', title: 'Principles of Sociology → SOCI 201', credits: 3, note: 'Summer/Winter' },
+    { code: 'PSYC 206', title: 'Human Growth & Dev → HDFS 223', credits: 3, note: 'Summer' },
+    { code: 'PSYC 217', title: 'Social Psychology → PSYC 390', credits: 3, note: 'Summer' },
+    { code: 'HESC 115', title: 'Nutrition and Health → HBNS 200', credits: 3, note: 'Summer' },
+    { code: 'ECON 107', title: 'Economics → ECON 100', credits: 3, note: 'Summer' },
+  ],
+  'General Interest': [
+    { code: 'COMM 100', title: 'Foundations of Communication', credits: 3 },
+    { code: 'COMM 212', title: 'Public Speaking & Professional Presentation', credits: 3 },
+    { code: 'SOCI 201', title: 'Introduction to Sociology', credits: 3 },
+    { code: 'PSYC 390', title: 'Social Psychology', credits: 3 },
+    { code: 'PSYC 370', title: 'Research in Personality', credits: 3 },
+  ],
+};
 
 interface RequirementItemProps {
   requirement: RequirementWithStatus;
@@ -11,6 +46,7 @@ interface RequirementItemProps {
 
 export function RequirementItem({ requirement }: RequirementItemProps) {
   const { status, name, description, fulfilledBy, courseOptions } = requirement;
+  const isElective = requirement.id === 'free-elective';
 
   const statusIcon = {
     completed: (
@@ -87,6 +123,43 @@ export function RequirementItem({ requirement }: RequirementItemProps) {
             {status === 'in_progress' && (
               <span className="text-xs italic text-muted-foreground">In progress</span>
             )}
+          </div>
+        ) : isElective ? (
+          /* Elective course suggestions */
+          <div className="mt-2 space-y-3">
+            {Object.entries(ELECTIVE_SUGGESTIONS).map(([groupName, courses]) => (
+              <div key={groupName}>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  {groupName === 'Brookdale CC Transfers' ? (
+                    <ArrowRight className="h-3 w-3 text-teal-500" />
+                  ) : (
+                    <GraduationCap className="h-3 w-3 text-blue-500" />
+                  )}
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    {groupName}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {courses.map((course) => (
+                    <Badge
+                      key={course.code}
+                      variant="outline"
+                      className={cn(
+                        'text-xs text-muted-foreground',
+                        groupName === 'Brookdale CC Transfers' && 'border-teal-200 bg-teal-50 text-teal-700'
+                      )}
+                      title={`${course.title} (${course.credits} cr)${course.note ? ' — ' + course.note : ''}`}
+                    >
+                      {course.code}
+                      <span className="ml-1 opacity-60">{course.credits}cr</span>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <p className="text-[11px] text-muted-foreground italic">
+              Hover over a course for details. Any UDel or transferable Brookdale course counts.
+            </p>
           </div>
         ) : (
           status === 'not_started' &&
