@@ -56,7 +56,7 @@ export function GraduationTracker({ plan }: GraduationTrackerProps) {
     [allPlanCourses]
   );
 
-  const { groups, totalCompleted, totalInProgress, totalNotStarted, totalRequirements } =
+  const { groups, totalCompleted, totalFulfilled, totalInProgress, totalNotStarted, totalRequirements } =
     useRequirements(plannedOnlyCourses);
 
   // Credit tallies
