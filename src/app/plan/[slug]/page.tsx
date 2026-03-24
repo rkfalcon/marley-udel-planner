@@ -84,18 +84,45 @@ export default function PlanEditorPage() {
     [removeCourse]
   );
 
-  const handleSave = async () => {
+  const handleSaveUpdate = async () => {
     if (!pin.trim() || pin.length < 4) {
       setPinError('PIN must be at least 4 characters');
       return;
     }
     setPinError('');
     setSaveLoading(true);
-
     try {
       const resultSlug = await savePlan(pin);
       if (resultSlug) {
         setSavedSlug(resultSlug);
+        setSaveMode('done');
+      }
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  const handleSaveAsNew = async () => {
+    if (!pin.trim() || pin.length < 4) {
+      setPinError('PIN must be at least 4 characters');
+      return;
+    }
+    if (!newPlanName.trim()) {
+      setPinError('Please enter a plan name');
+      return;
+    }
+    setPinError('');
+    setSaveLoading(true);
+    try {
+      // Create a new slug and update the plan name
+      if (plan) {
+        const newSlug = newPlanName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Math.random().toString(36).substring(2, 6);
+        const newPlan = { ...plan, name: newPlanName.trim(), slug: newSlug, updatedAt: new Date().toISOString() };
+        const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
+        plans[newSlug] = { ...newPlan, pin };
+        localStorage.setItem('udel-plans', JSON.stringify(plans));
+        setSavedSlug(newSlug);
+        setSaveMode('done');
       }
     } finally {
       setSaveLoading(false);
