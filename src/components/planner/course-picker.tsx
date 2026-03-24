@@ -735,9 +735,14 @@ export function CoursePicker({
                                   {req.courses.map((course) => (
                                     <CourseButton key={course.id} course={course} onSelect={handleSelect} isPlanned={plannedSet.has(course.courseCode)} isCompleted={completedCodes.has(course.courseCode)} />
                                   ))}
-                                  {/* Second Writing: add custom entry option after the curated list */}
+                                  {/* Second Writing: note + custom entry option after the curated list */}
                                   {req.id === 'second-writing' && (
-                                    <SecondWritingCustomEntry onAdd={handleSelect} />
+                                    <>
+                                      <p className="text-[10px] text-slate-400 italic px-1 pt-1">
+                                        Note: Second Writing must be taken at UDel (after 60 credits). No Brookdale transfers satisfy this requirement.
+                                      </p>
+                                      <SecondWritingCustomEntry onAdd={handleSelect} />
+                                    </>
                                   )}
                                 </div>
                               )}
