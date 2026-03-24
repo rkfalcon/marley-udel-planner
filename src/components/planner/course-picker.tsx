@@ -176,7 +176,8 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
           // Has some planned courses
           status = 'in_progress';
         } else {
-          status = electiveCreditsEarned > 0 ? 'in_progress' : 'not_started';
+          const hasElectiveCredits = COMPLETED_COURSES.some(c => c.fulfillsRequirements?.includes('free-elective'));
+          status = hasElectiveCredits ? 'in_progress' : 'not_started';
         }
 
         const dynamicName = remaining > 0
