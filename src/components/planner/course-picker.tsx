@@ -263,24 +263,73 @@ function BrookdaleTransferList({
 }) {
   const q = query.toLowerCase();
 
-  // Filter transfer mappings by search
-  const filtered = useMemo(() => {
-    if (!q) return TRANSFER_MAPPINGS;
-    return TRANSFER_MAPPINGS.filter(m =>
-      m.brookdaleCourses.some(c => c.toLowerCase().includes(q)) ||
-      m.brookdaleTitles.some(t => t.toLowerCase().includes(q)) ||
-      m.udelCourseCode.toLowerCase().includes(q) ||
-      m.udelTitle.toLowerCase().includes(q)
-    );
-  }, [q]);
-
-  // Check which ones fulfill a degree requirement
-  const getReqMatch = (udelCode: string) => {
+  // Build a set of requirement IDs that are already fulfilled (completed or in-progress)
+  const fulfilledReqIds = useMemo(() => {
+    const fulfilled = new Set<string>();
     for (const req of REQUIREMENTS) {
-      if (req.courseOptions?.includes(udelCode)) return req.name;
+      let isFulfilled = false;
+      // Check completed/in-progress courses
+      for (const cc of COMPLETED_COURSES) {
+        const fulfills = cc.fulfillsRequirements?.includes(req.id);
+        const matches = req.courseOptions?.includes(cc.courseCode);
+        if (fulfills || matches) {
+          if (cc.status === 'completed' || cc.status === 'transfer' || cc.status === 'in_progress') {
+            isFulfilled = true;
+            break;
+          }
+        }
+      }
+      // Check planned courses
+      if (!isFulfilled && req.courseOptions) {
+        for (const code of req.courseOptions) {
+          if (plannedCodes.has(code)) {
+            isFulfilled = true;
+            break;
+          }
+        }
+      }
+      if (isFulfilled) fulfilled.add(req.id);
+    }
+    return fulfilled;
+  }, [plannedCodes]);
+
+  // Check which ones fulfill a degree requirement (returns req name + id)
+  const getReqMatch = (udelCode: string): { name: string; id: string } | null => {
+    for (const req of REQUIREMENTS) {
+      if (req.courseOptions?.includes(udelCode)) return { name: req.name, id: req.id };
     }
     return null;
   };
+
+  // Filter transfer mappings: by search, and hide ones whose requirement is already fulfilled
+  const filtered = useMemo(() => {
+    let results = TRANSFER_MAPPINGS;
+
+    // Filter by search query
+    if (q) {
+      results = results.filter(m =>
+        m.brookdaleCourses.some(c => c.toLowerCase().includes(q)) ||
+        m.brookdaleTitles.some(t => t.toLowerCase().includes(q)) ||
+        m.udelCourseCode.toLowerCase().includes(q) ||
+        m.udelTitle.toLowerCase().includes(q)
+      );
+    }
+
+    // Hide courses whose requirement is already fulfilled
+    results = results.filter(m => {
+      const reqMatch = getReqMatch(m.udelCourseCode);
+      // If the course fulfills a requirement that's already done/in-progress, hide it
+      // (unless it's a free elective — always show those)
+      if (reqMatch && reqMatch.id !== 'free-elective' && fulfilledReqIds.has(reqMatch.id)) {
+        return false;
+      }
+      // Also hide if the UDel equivalent is already completed
+      if (completedCodes.has(m.udelCourseCode)) return false;
+      return true;
+    });
+
+    return results;
+  }, [q, fulfilledReqIds, completedCodes]);
 
   // Sort: requirement-fulfilling first, then alphabetical
   const sorted = useMemo(() => {
