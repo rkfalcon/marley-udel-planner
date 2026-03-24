@@ -67,16 +67,6 @@ export default function PlanEditorPage() {
     });
   }, [slug, loadPlan, router]);
 
-  // Auto-save to localStorage whenever plan changes (so changes persist even without clicking Save)
-  useEffect(() => {
-    if (!plan || !initialLoadDone) return;
-    const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
-    const existingEntry = plans[plan.slug];
-    // Preserve the PIN from the existing save
-    plans[plan.slug] = { ...plan, pin: existingEntry?.pin };
-    localStorage.setItem('udel-plans', JSON.stringify(plans));
-  }, [plan, initialLoadDone]);
-
   const handleAddCourse = useCallback(
     (
       semesterId: string,
