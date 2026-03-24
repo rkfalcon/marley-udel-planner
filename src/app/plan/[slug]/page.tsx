@@ -97,6 +97,12 @@ export default function PlanEditorPage() {
         setSavedSlug(resultSlug);
         setSaveMode('done');
       }
+    } catch (err) {
+      if (err instanceof Error && err.message === 'WRONG_PIN') {
+        setPinError('Incorrect PIN. Please enter the PIN used when this plan was created, or save as a new plan instead.');
+      } else {
+        setPinError('Failed to save plan. Please try again.');
+      }
     } finally {
       setSaveLoading(false);
     }
