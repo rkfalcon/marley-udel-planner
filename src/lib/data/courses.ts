@@ -101,6 +101,23 @@ export const COURSES: Course[] = [
   { id: 'bc-13', school: 'brookdale', courseCode: 'PSYC 225', title: 'Human Sexuality', credits: 3, typicallyOffered: 'Fall, Spring' },
   { id: 'bc-14', school: 'brookdale', courseCode: 'ECON 107', title: 'Economics', credits: 3, typicallyOffered: 'Fall, Spring, Summer' },
   { id: 'bc-15', school: 'brookdale', courseCode: 'POLI 225', title: 'International Relations', credits: 3, typicallyOffered: 'Fall, Spring' },
+
+  // === DLE COURSES ===
+  { id: 'dle-1', school: 'udel', courseCode: 'UNIV 370', title: 'Study Abroad I', credits: 3, typicallyOffered: 'Fall, Spring, Summer', attributes: ['DLE'] },
+  { id: 'dle-2', school: 'udel', courseCode: 'UNIV 371', title: 'Study Abroad II', credits: 3, typicallyOffered: 'Fall, Spring, Summer', attributes: ['DLE'] },
+  { id: 'dle-3', school: 'udel', courseCode: 'UNIV 372', title: 'Study Abroad III', credits: 3, typicallyOffered: 'Fall, Spring, Summer', attributes: ['DLE'] },
+  { id: 'dle-4', school: 'udel', courseCode: 'UNIV 373', title: 'Study Abroad IV', credits: 3, typicallyOffered: 'Fall, Spring, Summer', attributes: ['DLE'] },
+  { id: 'dle-5', school: 'udel', courseCode: 'CGSC 464', title: 'Internship in Cognitive Science', credits: 3, typicallyOffered: 'Fall, Spring, Summer', attributes: ['DLE'] },
+  { id: 'dle-6', school: 'udel', courseCode: 'CGSC 466', title: 'Independent Study in Cognitive Science', credits: 3, typicallyOffered: 'Fall, Spring', attributes: ['DLE'] },
+  { id: 'dle-7', school: 'udel', courseCode: 'UNIV 401', title: 'Undergraduate Research', credits: 3, typicallyOffered: 'Fall, Spring', attributes: ['DLE'] },
+  { id: 'dle-8', school: 'udel', courseCode: 'UNIV 402', title: 'Senior Thesis', credits: 3, typicallyOffered: 'Fall, Spring', attributes: ['DLE', 'Honors Capstone'] },
+  { id: 'dle-9', school: 'udel', courseCode: 'LING 466', title: 'Independent Study in Linguistics', credits: 3, typicallyOffered: 'Fall, Spring', attributes: ['DLE'] },
+  { id: 'dle-10', school: 'udel', courseCode: 'PSYC 484', title: 'Undergraduate Research in Psychology', credits: 3, typicallyOffered: 'Fall, Spring', attributes: ['DLE'] },
+  { id: 'dle-11', school: 'udel', courseCode: 'HDFS 464', title: 'Internship in Human Development', credits: 3, typicallyOffered: 'Fall, Spring, Summer', attributes: ['DLE'] },
+  { id: 'dle-12', school: 'udel', courseCode: 'EDUC 400', title: 'Field Experience in Education', credits: 3, typicallyOffered: 'Fall, Spring', attributes: ['DLE'] },
+  { id: 'dle-13', school: 'udel', courseCode: 'EDUC 401', title: 'Clinical Experience in Education', credits: 3, typicallyOffered: 'Fall, Spring', attributes: ['DLE'] },
+  { id: 'dle-14', school: 'udel', courseCode: 'COMM 464', title: 'Internship in Communication', credits: 3, typicallyOffered: 'Fall, Spring, Summer', attributes: ['DLE'] },
+  { id: 'dle-15', school: 'udel', courseCode: 'SOCI 464', title: 'Internship in Sociology', credits: 3, typicallyOffered: 'Fall, Spring, Summer', attributes: ['DLE'] },
 ];
 
 export function getCourseByCode(code: string, school?: string): Course | undefined {
