@@ -1,6 +1,9 @@
 // All courses approved for the CAS Second Writing Requirement
 // Source: https://catalog.udel.edu/preview_program.php?catoid=90&poid=78217
-// Must be taken after 60 credits earned
+// Must be taken after 60 credits earned, at UDel (not transferable from Brookdale)
+// Note: No Brookdale CC transfer courses map to Second Writing approved courses —
+// all 385 approved courses are 200+ level UDel courses, and Brookdale transfers
+// mostly map to intro-level courses that aren't on the approved list.
 
 export interface SecondWritingCourse {
   code: string;
