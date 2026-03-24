@@ -4,9 +4,33 @@ import { useMemo } from 'react';
 import { REQUIREMENTS, REQUIREMENT_GROUPS } from '@/lib/data/requirements';
 import { COMPLETED_COURSES } from '@/lib/data/marley-progress';
 import { SECOND_WRITING_ALL_CODES } from '@/lib/data/second-writing-courses';
+import { TRANSFER_MAPPINGS } from '@/lib/data/transfer-mappings';
 import { RequirementWithStatus, RequirementGroup, CompletedCourse, PlanCourse } from '@/lib/types';
 
 const secondWritingSet = new Set(SECOND_WRITING_ALL_CODES);
+
+// Build a lookup: Brookdale course code → UDel equivalent course code
+const brookdaleToUdel = new Map<string, string>();
+for (const m of TRANSFER_MAPPINGS) {
+  // For single-course mappings, map brookdale code → udel code
+  if (m.brookdaleCourses.length === 1) {
+    brookdaleToUdel.set(m.brookdaleCourses[0], m.udelCourseCode);
+  }
+  // For multi-course mappings, map each brookdale code → udel code
+  for (const bc of m.brookdaleCourses) {
+    if (!brookdaleToUdel.has(bc)) {
+      brookdaleToUdel.set(bc, m.udelCourseCode);
+    }
+  }
+}
+
+// Given a course code (possibly Brookdale), get the UDel equivalent for requirement matching
+function getUdelEquivalent(courseCode: string, school?: string): string {
+  if (school === 'brookdale' || brookdaleToUdel.has(courseCode)) {
+    return brookdaleToUdel.get(courseCode) || courseCode;
+  }
+  return courseCode;
+}
 
 function getRequirementStatus(
   req: typeof REQUIREMENTS[number],
