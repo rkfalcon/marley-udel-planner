@@ -410,7 +410,7 @@ function BrookdaleTransferList({
                 {/* Requirement fulfillment */}
                 {reqMatch && (
                   <Badge className="mt-1.5 text-[10px] font-medium px-2 py-0.5 h-auto bg-amber-100 text-amber-700 border-0">
-                    Fulfills: {reqMatch.replace(/^[A-Z]+\s\d+\s[-–]\s/, '')}
+                    Fulfills: {reqMatch.name.replace(/^[A-Z]+\s\d+\s[-–]\s/, '')}
                   </Badge>
                 )}
 
