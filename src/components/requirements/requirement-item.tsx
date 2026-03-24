@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import type { RequirementWithStatus } from '@/lib/types';
 
 // Elective course suggestions grouped by type
-const ELECTIVE_SUGGESTIONS = {
+const ELECTIVE_SUGGESTIONS: Record<string, { code: string; title: string; credits: number; note?: string }[]> = {
   'SLP-Related': [
     { code: 'HDFS 201', title: 'Life Span Development', credits: 3, note: 'Currently taking Spring 2026' },
     { code: 'HDFS 223', title: 'Foundations of Child Development', credits: 3 },
