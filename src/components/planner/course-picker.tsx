@@ -26,6 +26,7 @@ interface CoursePickerProps {
   semesterTerm?: Term;
   semesterSchool?: 'udel' | 'brookdale';
   plannedCourseCodes?: string[]; // courses already in the plan
+  totalPlanCredits?: number; // total credits across all semesters in the plan
 }
 
 // Build a lookup: Brookdale course code → UDel equivalent for requirement matching
