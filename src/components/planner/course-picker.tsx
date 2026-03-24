@@ -118,10 +118,13 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
     });
 
     if (reqItems.length > 0) {
+      const fulfilledCount = reqItems.filter(r => r.status === 'completed' || r.status === 'in_progress').length;
       sections.push({
         category: group.category,
         label: group.label,
         description: group.description,
+        fulfilledCount,
+        totalCount: reqItems.length,
         requirements: reqItems,
       });
     }
