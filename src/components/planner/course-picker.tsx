@@ -28,9 +28,31 @@ interface CoursePickerProps {
   plannedCourseCodes?: string[]; // courses already in the plan
 }
 
+// Build a lookup: Brookdale course code → UDel equivalent for requirement matching
+const brookdaleToUdelMap = new Map<string, string>();
+for (const m of TRANSFER_MAPPINGS) {
+  for (const bc of m.brookdaleCourses) {
+    if (!brookdaleToUdelMap.has(bc)) {
+      brookdaleToUdelMap.set(bc, m.udelCourseCode);
+    }
+  }
+}
+
+// Expand planned codes to include UDel equivalents for Brookdale courses
+function expandPlannedCodes(plannedCodes: Set<string>): Set<string> {
+  const expanded = new Set(plannedCodes);
+  for (const code of plannedCodes) {
+    const udelEquiv = brookdaleToUdelMap.get(code);
+    if (udelEquiv) expanded.add(udelEquiv);
+  }
+  return expanded;
+}
+
 // Build a structured list of requirements with their course options
 function buildRequirementSections(school: 'udel' | 'brookdale', query: string, plannedCodes: Set<string> = new Set()) {
   const q = query.toLowerCase();
+  // Expand planned codes so Brookdale courses match UDel requirement options
+  const expandedPlannedCodes = expandPlannedCodes(plannedCodes);
 
   // Group requirements by category
   const sections: {
@@ -68,11 +90,11 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
         }
       }
 
-      // Check if any planned course fulfills this requirement
+      // Check if any planned course (or its UDel equivalent) fulfills this requirement
       if (status === 'not_started') {
         if (req.courseOptions) {
           for (const code of req.courseOptions) {
-            if (plannedCodes.has(code)) {
+            if (expandedPlannedCodes.has(code)) {
               status = 'in_progress';
               break;
             }
@@ -80,7 +102,7 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
         }
         // Second writing: check if any planned course is in the approved list
         if (req.id === 'second-writing') {
-          for (const code of plannedCodes) {
+          for (const code of expandedPlannedCodes) {
             if (SECOND_WRITING_ALL_CODES.includes(code)) {
               status = 'in_progress';
               break;
