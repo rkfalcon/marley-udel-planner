@@ -245,64 +245,13 @@ export function usePlan() {
     setLoading(true);
     setError(null);
     try {
-      if (isSupabaseConfigured()) {
-        try {
-        const { data, error: sbError } = await supabase
-          .from('plans')
-          .select('*')
-          .eq('slug', slug)
-          .single();
-
-        if (!sbError && data) {
-          // Load semesters and courses
-          const { data: semesters } = await supabase
-            .from('plan_semesters')
-            .select('*, plan_courses(*)')
-            .eq('plan_id', data.id)
-            .order('sort_order');
-
-          const loadedPlan: Plan = {
-            id: data.id,
-            name: data.name,
-            description: data.description,
-            slug: data.slug,
-            targetGraduation: data.target_graduation,
-            isEarlyGraduation: data.is_early_graduation,
-            createdAt: data.created_at,
-            updatedAt: data.updated_at,
-            semesters: (semesters || []).map((s: Record<string, unknown>) => ({
-              id: s.id as string,
-              planId: s.plan_id as string,
-              term: s.term as Term,
-              year: s.year as number,
-              school: s.school as School,
-              sortOrder: s.sort_order as number,
-              courses: ((s.plan_courses as Record<string, unknown>[]) || []).map((c: Record<string, unknown>) => ({
-                id: c.id as string,
-                planSemesterId: c.plan_semester_id as string,
-                courseCode: c.course_code as string,
-                title: c.title as string || '',
-                school: c.school as School,
-                credits: c.credits as number,
-                status: c.status as CourseStatus,
-                grade: c.grade as string | undefined,
-                notes: c.notes as string | undefined,
-              })),
-            })),
-          };
-          setPlan(loadedPlan);
-          return loadedPlan;
-        }
-        } catch {
-          // Supabase tables may not exist yet, fall through to localStorage
-        }
-      }
-
-      // Fallback to localStorage
+      // Load from localStorage (primary storage)
       const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
       if (plans[slug]) {
-        setPlan(plans[slug]);
-        return plans[slug];
+        // Strip the pin before setting state (don't expose it)
+        const { pin: _pin, ...planData } = plans[slug];
+        setPlan(planData);
+        return planData;
       }
       throw new Error('Plan not found');
     } catch (err) {
