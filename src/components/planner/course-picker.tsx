@@ -465,7 +465,10 @@ export function CoursePicker({
               </div>
             )}
 
-            {sections.length === 0 && electiveCourses.length === 0 && (
+            {/* Custom course entry */}
+            <CustomCourseEntry school={activeSchool} onAdd={handleSelect} />
+
+            {sections.length === 0 && electiveCourses.length === 0 && !query && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Search className="h-8 w-8 text-slate-300 mb-3" />
                 <p className="text-sm font-medium text-slate-500">No courses found</p>
