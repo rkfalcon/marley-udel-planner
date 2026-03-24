@@ -73,7 +73,9 @@ function getRequirementStatus(
   // Check planned courses — if requirement not yet fulfilled, a planned course can mark it as in_progress
   if (status === 'not_started' || status === 'in_progress') {
     for (const course of plannedCourses) {
-      if (req.courseOptions?.includes(course.courseCode)) {
+      const matchesOption = req.courseOptions?.includes(course.courseCode);
+      const matchesSW = req.id === 'second-writing' && secondWritingSet.has(course.courseCode);
+      if (matchesOption || matchesSW) {
         if (status === 'not_started') {
           status = 'in_progress'; // planned course counts as "in progress" toward fulfillment
         }
