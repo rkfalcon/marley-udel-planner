@@ -16,6 +16,7 @@ import { COURSES, searchCourses, getCourseByCode } from '@/lib/data/courses';
 import { REQUIREMENTS, REQUIREMENT_GROUPS } from '@/lib/data/requirements';
 import { TRANSFER_MAPPINGS } from '@/lib/data/transfer-mappings';
 import { COMPLETED_COURSES } from '@/lib/data/marley-progress';
+import { SECOND_WRITING_COURSES, SECOND_WRITING_ALL_CODES } from '@/lib/data/second-writing-courses';
 import { Course, Term, RequirementCategory } from '@/lib/types';
 
 interface CoursePickerProps {
