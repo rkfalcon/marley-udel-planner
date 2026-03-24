@@ -31,7 +31,7 @@ function getRequirementStatus(
   }
 
   // For credit-based requirements, check total credits
-  if (req.fulfillmentType === 'credits' && req.id !== 'free-elective') {
+  if (req.fulfillmentType === 'credits') {
     const creditsEarned = completedCourses
       .filter(c => {
         const fulfillsThis = c.fulfillsRequirements?.includes(req.id);
