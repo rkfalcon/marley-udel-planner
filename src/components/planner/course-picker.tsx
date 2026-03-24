@@ -757,7 +757,8 @@ export function CoursePicker({
                     {isSectionExpanded && (
                       <div className="border-t border-slate-100">
                         {section.requirements.map((req) => {
-                          const isReqExpanded = isSearching || expandedReqs.has(req.id);
+                          const isFulfilled = req.status === 'completed' || req.status === 'in_progress';
+                          const isReqExpanded = !isFulfilled && (isSearching || expandedReqs.has(req.id));
                           const statusIcon = req.status === 'completed'
                             ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
                             : req.status === 'in_progress'
@@ -767,14 +768,20 @@ export function CoursePicker({
                           return (
                             <div key={req.id}>
                               <button
-                                onClick={() => toggleReq(req.id)}
-                                className={cn('w-full flex items-center gap-2 px-4 py-2 text-left transition-colors hover:bg-slate-50/80', req.status === 'completed' && 'bg-green-50/30')}
+                                onClick={() => !isFulfilled && toggleReq(req.id)}
+                                className={cn(
+                                  'w-full flex items-center gap-2 px-4 py-2 text-left transition-colors',
+                                  isFulfilled ? 'bg-green-50/30 opacity-60 cursor-default' : 'hover:bg-slate-50/80'
+                                )}
                               >
                                 {statusIcon}
-                                <span className={cn('flex-1 text-xs font-medium leading-tight', req.status === 'completed' ? 'text-green-700 line-through' : 'text-slate-600')}>
+                                <span className={cn('flex-1 text-xs font-medium leading-tight', isFulfilled ? 'text-green-700 line-through' : 'text-slate-600')}>
                                   {req.name}
                                 </span>
-                                {req.courses.length > 0 && (
+                                {isFulfilled && (
+                                  <span className="text-[10px] text-green-500 italic">Fulfilled</span>
+                                )}
+                                {!isFulfilled && req.courses.length > 0 && (
                                   <>
                                     <Badge variant="outline" className="text-[10px] h-4 px-1.5 py-0 text-slate-400 border-slate-200">{req.courses.length}</Badge>
                                     {isReqExpanded ? <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" /> : <ChevronRight className="h-3 w-3 text-slate-400 shrink-0" />}
