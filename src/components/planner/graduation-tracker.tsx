@@ -168,10 +168,12 @@ export function GraduationTracker({ plan }: GraduationTrackerProps) {
 
           <div className="space-y-3">
             {groups.map((group) => {
-              const completed = group.requirements.filter((r) => r.status === 'completed').length;
+              // fulfilledCount includes completed + in_progress with a course assigned
+              const fulfilled = group.fulfilledCount;
+              const completed = group.completedCount;
               const inProg = group.requirements.filter((r) => r.status === 'in_progress').length;
               const total = group.requirements.length;
-              const allDone = completed === total;
+              const allDone = fulfilled === total;
               const colorClass = CATEGORY_COLORS[group.category] || 'text-slate-600';
 
               return (
