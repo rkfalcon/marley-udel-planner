@@ -678,6 +678,82 @@ function CustomCourseEntry({
   );
 }
 
+let placeholderCount = 1;
+
+function PlaceholderElectiveEntry({
+  onAdd,
+}: {
+  onAdd: (course: Course) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [credits, setCredits] = useState('3');
+  const [label, setLabel] = useState('');
+
+  const handleAdd = () => {
+    const cr = parseInt(credits) || 3;
+    const displayLabel = label.trim() || `Elective ${placeholderCount}`;
+    placeholderCount++;
+    onAdd({
+      id: `placeholder-${Date.now()}`,
+      school: 'udel',
+      courseCode: `ELEC ${String(placeholderCount).padStart(3, '0')}`,
+      title: `${displayLabel} (${cr}cr placeholder)`,
+      credits: cr,
+    });
+    setLabel('');
+    setCredits('3');
+  };
+
+  return (
+    <div className="rounded-lg border border-dashed border-amber-300 bg-amber-50/30 overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-amber-50 transition-colors"
+      >
+        <Plus className="h-4 w-4 text-amber-500 shrink-0" />
+        <span className="text-sm font-semibold text-amber-700 flex-1">
+          Add Elective Placeholder
+        </span>
+        <span className="text-[10px] text-amber-500">
+          TBD credits
+        </span>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-amber-200 px-4 py-3 space-y-2.5 bg-amber-50/50">
+          <p className="text-[11px] text-amber-600">
+            Add a placeholder for elective credits you plan to take but haven&apos;t chosen yet:
+          </p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Label (optional, e.g. Science Elective)"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              className="h-8 text-xs flex-1 border-amber-200 focus:border-amber-400"
+              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+            />
+            <Input
+              placeholder="Credits"
+              value={credits}
+              onChange={(e) => setCredits(e.target.value)}
+              className="h-8 text-xs w-16 border-amber-200 focus:border-amber-400"
+              type="number"
+              min="1"
+              max="12"
+            />
+          </div>
+          <button
+            onClick={handleAdd}
+            className="w-full h-8 rounded-md text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+          >
+            Add Placeholder to Semester
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CoursePicker({
   open,
   onOpenChange,
