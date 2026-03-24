@@ -198,6 +198,7 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
         semesterTerm={activeSemester?.term}
         semesterSchool={activeSemester?.school}
         plannedCourseCodes={plan.semesters.flatMap(s => s.courses.map(c => c.courseCode))}
+        totalPlanCredits={plan.semesters.reduce((sum, s) => sum + s.courses.reduce((cs, c) => cs + c.credits, 0), 0)}
       />
     </div>
   );
