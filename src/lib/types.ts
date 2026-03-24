@@ -108,7 +108,9 @@ export interface RequirementGroup {
   description: string;
   requirements: RequirementWithStatus[];
   completedCount: number;
+  fulfilledCount: number;
   totalCount: number;
   completedCredits: number;
+  fulfilledCredits: number;
   totalCredits: number;
 }
