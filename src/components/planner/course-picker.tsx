@@ -212,6 +212,146 @@ function CourseButton({
   );
 }
 
+function BrookdaleTransferList({
+  query,
+  onSelect,
+  plannedCodes,
+  completedCodes,
+}: {
+  query: string;
+  onSelect: (course: Course) => void;
+  plannedCodes: Set<string>;
+  completedCodes: Set<string>;
+}) {
+  const q = query.toLowerCase();
+
+  // Filter transfer mappings by search
+  const filtered = useMemo(() => {
+    if (!q) return TRANSFER_MAPPINGS;
+    return TRANSFER_MAPPINGS.filter(m =>
+      m.brookdaleCourses.some(c => c.toLowerCase().includes(q)) ||
+      m.brookdaleTitles.some(t => t.toLowerCase().includes(q)) ||
+      m.udelCourseCode.toLowerCase().includes(q) ||
+      m.udelTitle.toLowerCase().includes(q)
+    );
+  }, [q]);
+
+  // Check which ones fulfill a degree requirement
+  const getReqMatch = (udelCode: string) => {
+    for (const req of REQUIREMENTS) {
+      if (req.courseOptions?.includes(udelCode)) return req.name;
+    }
+    return null;
+  };
+
+  // Sort: requirement-fulfilling first, then alphabetical
+  const sorted = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      const aReq = getReqMatch(a.udelCourseCode);
+      const bReq = getReqMatch(b.udelCourseCode);
+      if (aReq && !bReq) return -1;
+      if (!aReq && bReq) return 1;
+      return a.brookdaleCourses[0].localeCompare(b.brookdaleCourses[0]);
+    });
+  }, [filtered]);
+
+  return (
+    <div className="px-4 pb-5 space-y-1.5">
+      <p className="text-xs text-slate-500 px-1 pb-1">
+        {filtered.length} of {TRANSFER_MAPPINGS.length} Brookdale → UDel transfer courses
+      </p>
+
+      {sorted.map((mapping) => {
+        const reqMatch = getReqMatch(mapping.udelCourseCode);
+        const isMulti = mapping.brookdaleCourses.length > 1;
+        const isPlanned = mapping.brookdaleCourses.some(c => plannedCodes.has(c));
+        const brookdaleCode = mapping.brookdaleCourses.join(' + ');
+
+        return (
+          <button
+            key={mapping.id}
+            onClick={() => {
+              // Create a course object from the transfer mapping
+              const course: Course = {
+                id: `transfer-${mapping.id}`,
+                school: 'brookdale',
+                courseCode: mapping.brookdaleCourses[0],
+                title: mapping.brookdaleTitles[0],
+                credits: 3, // Most transfer courses are 3 credits
+              };
+              onSelect(course);
+            }}
+            disabled={isPlanned}
+            className={cn(
+              'w-full text-left rounded-lg border p-3 transition-all duration-150 group',
+              'hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-emerald-300',
+              isPlanned && 'opacity-50 cursor-not-allowed',
+              reqMatch
+                ? 'border-amber-200 bg-amber-50/30 hover:bg-amber-50/60'
+                : 'border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30',
+            )}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                {/* Brookdale course info */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-sm font-bold text-emerald-700">{brookdaleCode}</span>
+                  <Badge variant="outline" className="text-[10px] px-1.5 h-4 py-0 font-semibold border-emerald-200 text-emerald-600 bg-emerald-50">
+                    3 cr
+                  </Badge>
+                  {isMulti && (
+                    <Badge className="text-[10px] px-1.5 h-4 py-0 bg-orange-100 text-orange-600 border-0">
+                      Both required
+                    </Badge>
+                  )}
+                  {isPlanned && (
+                    <Badge className="text-[10px] px-1.5 h-4 py-0 bg-blue-100 text-blue-600 border-0">In plan</Badge>
+                  )}
+                  {reqMatch && (
+                    <Star className="h-3 w-3 text-amber-400 fill-current shrink-0" />
+                  )}
+                </div>
+                <p className="text-xs text-slate-600 mt-0.5">{mapping.brookdaleTitles.join(' & ')}</p>
+
+                {/* Transfer arrow + UDel equivalent */}
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <ArrowRight className="h-3 w-3 text-teal-500 shrink-0" />
+                  <span className="text-xs font-semibold text-blue-700">{mapping.udelCourseCode}</span>
+                  <span className="text-xs text-slate-500">{mapping.udelTitle}</span>
+                </div>
+
+                {/* Requirement fulfillment */}
+                {reqMatch && (
+                  <Badge className="mt-1.5 text-[10px] font-medium px-2 py-0.5 h-auto bg-amber-100 text-amber-700 border-0">
+                    Fulfills: {reqMatch.replace(/^[A-Z]+\s\d+\s[-–]\s/, '')}
+                  </Badge>
+                )}
+
+                {/* Notes */}
+                {mapping.notes && (
+                  <p className="text-[10px] text-slate-400 mt-1 italic">{mapping.notes}</p>
+                )}
+              </div>
+
+              {!isPlanned && (
+                <Plus className="h-4 w-4 shrink-0 mt-0.5 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              )}
+            </div>
+          </button>
+        );
+      })}
+
+      {filtered.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <Search className="h-8 w-8 text-slate-300 mb-3" />
+          <p className="text-sm font-medium text-slate-500">No transfer courses match</p>
+          <p className="text-xs text-slate-400 mt-1">Try a different search term</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CustomCourseEntry({
   school,
   onAdd,
