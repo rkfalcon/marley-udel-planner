@@ -685,6 +685,7 @@ export function CoursePicker({
   semesterTerm,
   semesterSchool = 'udel',
   plannedCourseCodes = [],
+  totalPlanCredits = 0,
 }: CoursePickerProps) {
   const [query, setQuery] = useState('');
   const [activeSchool, setActiveSchool] = useState<'udel' | 'brookdale'>(semesterSchool);
