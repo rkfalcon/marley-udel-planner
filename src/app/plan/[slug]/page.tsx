@@ -120,13 +120,18 @@ export default function PlanEditorPage() {
     setPinError('');
     setSaveLoading(true);
     try {
-      // Create a new slug and update the plan name
+      // First save the current plan state to localStorage under current slug (so it's up to date)
+      // Then copy it to a new slug
       if (plan) {
+        // Save current state first
+        const allPlans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
+        allPlans[plan.slug] = { ...plan, updatedAt: new Date().toISOString(), pin: allPlans[plan.slug]?.pin };
+
+        // Create copy under new slug
         const newSlug = newPlanName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Math.random().toString(36).substring(2, 6);
-        const newPlan = { ...plan, name: newPlanName.trim(), slug: newSlug, updatedAt: new Date().toISOString() };
-        const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
-        plans[newSlug] = { ...newPlan, pin };
-        localStorage.setItem('udel-plans', JSON.stringify(plans));
+        const newPlan = { ...plan, name: newPlanName.trim(), slug: newSlug, id: crypto.randomUUID(), updatedAt: new Date().toISOString() };
+        allPlans[newSlug] = { ...newPlan, pin };
+        localStorage.setItem('udel-plans', JSON.stringify(allPlans));
         setSavedSlug(newSlug);
         setSaveMode('done');
       }
