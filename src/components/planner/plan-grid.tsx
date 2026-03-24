@@ -197,6 +197,7 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
         onSelectCourse={handleSelectCourse}
         semesterTerm={activeSemester?.term}
         semesterSchool={activeSemester?.school}
+        plannedCourseCodes={plan.semesters.flatMap(s => s.courses.map(c => c.courseCode))}
       />
     </div>
   );
