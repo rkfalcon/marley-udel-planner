@@ -190,7 +190,7 @@ export function GraduationTracker({ plan }: GraduationTrackerProps) {
                       ) : (
                         <Circle className="h-3.5 w-3.5 text-slate-300" />
                       )}
-                      <span className="text-[10px] text-slate-500 font-medium">{completed}/{total}</span>
+                      <span className="text-[10px] text-slate-500 font-medium">{fulfilled}/{total}</span>
                     </div>
                   </div>
 
