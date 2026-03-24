@@ -20,8 +20,10 @@ function getRequirementStatus(
   for (const course of completedCourses) {
     const fulfillsThis = course.fulfillsRequirements?.includes(req.id);
     const matchesCourseOption = req.courseOptions?.includes(course.courseCode);
+    // Special: second-writing can be fulfilled by any approved course
+    const matchesSecondWriting = req.id === 'second-writing' && secondWritingSet.has(course.courseCode);
 
-    if (fulfillsThis || matchesCourseOption) {
+    if (fulfillsThis || matchesCourseOption || matchesSecondWriting) {
       if (course.status === 'completed' || course.status === 'transfer') {
         status = 'completed';
         fulfilledBy = course;
