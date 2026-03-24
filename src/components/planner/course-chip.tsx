@@ -87,11 +87,12 @@ export function CourseChip({
           }}
           className={cn(
             'ml-0.5 shrink-0 rounded p-0.5 opacity-0 group-hover:opacity-100 transition-opacity',
-            'hover:bg-blue-200 text-blue-600 hover:text-blue-800',
-            school === 'brookdale' &&
+            isPlaceholder && 'hover:bg-orange-200 text-orange-600 hover:text-orange-800',
+            !isPlaceholder && 'hover:bg-blue-200 text-blue-600 hover:text-blue-800',
+            !isPlaceholder && school === 'brookdale' &&
               'hover:bg-cyan-200 text-cyan-600 hover:text-cyan-800'
           )}
-          aria-label={`Remove ${courseCode}`}
+          aria-label={`Remove ${displayCode}`}
         >
           <X className="h-3 w-3" />
         </button>
