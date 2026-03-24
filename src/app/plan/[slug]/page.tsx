@@ -40,12 +40,15 @@ export default function PlanEditorPage() {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveMode, setSaveMode] = useState<'choose' | 'update' | 'new' | 'done'>('choose');
   const [pin, setPin] = useState('');
+  const [newPlanName, setNewPlanName] = useState('');
   const [pinError, setPinError] = useState('');
   const [saveLoading, setSaveLoading] = useState(false);
   const [savedSlug, setSavedSlug] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const isExistingPlan = typeof window !== 'undefined' && !!JSON.parse(localStorage.getItem('udel-plans') || '{}')[slug];
 
   // Load plan on mount
   useEffect(() => {
