@@ -156,6 +156,10 @@ export function usePlan() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Always-current ref to avoid stale closure in savePlan
+  const planRef = useRef<Plan | null>(null);
+  useEffect(() => { planRef.current = plan; }, [plan]);
+
   const createPlan = useCallback((name: string, targetGraduation: string, isEarly: boolean = false) => {
     const planId = generateId();
     const pastSemesters = createPastSemesters().map(s => ({ ...s, planId }));
