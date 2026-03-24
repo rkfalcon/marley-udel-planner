@@ -13,7 +13,7 @@ function getRequirementStatus(
   let status: 'completed' | 'in_progress' | 'not_started' = 'not_started';
   let fulfilledBy: CompletedCourse | PlanCourse | undefined;
 
-  // Check completed/in-progress courses
+  // Check completed/in-progress courses first
   for (const course of completedCourses) {
     const fulfillsThis = course.fulfillsRequirements?.includes(req.id);
     const matchesCourseOption = req.courseOptions?.includes(course.courseCode);
@@ -49,21 +49,32 @@ function getRequirementStatus(
       })
       .reduce((sum, c) => sum + c.credits, 0);
 
+    // Also count planned course credits for credit-based reqs
+    const creditsPlanned = plannedCourses
+      .filter(c => req.courseOptions?.includes(c.courseCode))
+      .reduce((sum, c) => sum + c.credits, 0);
+
     if (creditsEarned >= req.creditsRequired) {
       status = 'completed';
     } else if (creditsEarned + creditsInProgress >= req.creditsRequired) {
       status = 'in_progress';
+    } else if (creditsEarned + creditsInProgress + creditsPlanned >= req.creditsRequired) {
+      status = 'in_progress'; // planned courses bring it to threshold
     } else {
-      status = creditsEarned > 0 ? 'in_progress' : 'not_started';
+      status = creditsEarned > 0 || creditsPlanned > 0 ? 'in_progress' : 'not_started';
     }
   }
 
-  // Check planned courses if not already fulfilled
-  if (status === 'not_started') {
+  // Check planned courses — if requirement not yet fulfilled, a planned course can mark it as in_progress
+  if (status === 'not_started' || status === 'in_progress') {
     for (const course of plannedCourses) {
       if (req.courseOptions?.includes(course.courseCode)) {
-        status = 'not_started'; // still not_started but we know it's planned
-        fulfilledBy = course;
+        if (status === 'not_started') {
+          status = 'in_progress'; // planned course counts as "in progress" toward fulfillment
+        }
+        if (!fulfilledBy) {
+          fulfilledBy = course;
+        }
         break;
       }
     }
