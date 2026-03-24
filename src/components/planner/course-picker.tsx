@@ -735,6 +735,10 @@ export function CoursePicker({
                                   {req.courses.map((course) => (
                                     <CourseButton key={course.id} course={course} onSelect={handleSelect} isPlanned={plannedSet.has(course.courseCode)} isCompleted={completedCodes.has(course.courseCode)} />
                                   ))}
+                                  {/* Second Writing: add custom entry option after the curated list */}
+                                  {req.id === 'second-writing' && (
+                                    <SecondWritingCustomEntry onAdd={handleSelect} />
+                                  )}
                                 </div>
                               )}
                             </div>
