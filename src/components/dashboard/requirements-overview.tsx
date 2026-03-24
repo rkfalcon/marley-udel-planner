@@ -1,14 +1,24 @@
 'use client';
 
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useRequirements } from '@/hooks/use-requirements';
-import { RequirementCategory } from '@/lib/types';
+import { RequirementItem } from '@/components/requirements/requirement-item';
+import { RequirementCategory as RequirementCategoryType } from '@/lib/types';
+import type { RequirementGroup } from '@/lib/types';
+import { CheckCircle2, Clock, Circle } from 'lucide-react';
 
 const CATEGORY_META: Record<
-  RequirementCategory,
+  RequirementCategoryType,
   { label: string; shortLabel: string; icon: string }
 > = {
   university: { label: 'University Requirements', shortLabel: 'University', icon: '🎓' },
@@ -19,11 +29,12 @@ const CATEGORY_META: Record<
 };
 
 interface CategoryCardProps {
-  category: RequirementCategory;
+  category: RequirementCategoryType;
   completedCount: number;
   totalCount: number;
   completedCredits: number;
   totalCredits: number;
+  onClick: () => void;
 }
 
 function CategoryCard({
@@ -32,6 +43,7 @@ function CategoryCard({
   totalCount,
   completedCredits,
   totalCredits,
+  onClick,
 }: CategoryCardProps) {
   const meta = CATEGORY_META[category];
   const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
@@ -60,7 +72,14 @@ function CategoryCard({
     : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-50';
 
   return (
-    <Card className="group transition-shadow hover:shadow-md border-slate-100">
+    <Card
+      className={cn(
+        'group transition-all border-slate-100',
+        'cursor-pointer hover:shadow-md hover:border-slate-200 hover:scale-[1.01]',
+        'active:scale-[0.99]'
+      )}
+      onClick={onClick}
+    >
       <CardHeader className="pb-3 pt-4 px-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -81,12 +100,16 @@ function CategoryCard({
       </CardHeader>
 
       <CardContent className="px-4 pb-4 space-y-3">
-        {/* Progress bar */}
         <div className="space-y-1.5">
-          <Progress
-            value={percent}
-            className={cn('h-2 bg-slate-100', progressColor)}
-          />
+          <div className="relative flex h-2 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={cn(
+                'h-full rounded-full transition-all',
+                isComplete ? 'bg-green-500' : isStarted ? 'bg-amber-400' : 'bg-slate-300'
+              )}
+              style={{ width: `${percent}%` }}
+            />
+          </div>
           <div className="flex justify-between items-center">
             <span className={cn('text-sm font-semibold tabular-nums', statusColor)}>
               {completedCount}/{totalCount}{' '}
@@ -102,11 +125,105 @@ function CategoryCard({
   );
 }
 
+function CategoryDetailDialog({
+  open,
+  onOpenChange,
+  group,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  group: RequirementGroup | null;
+}) {
+  if (!group) return null;
+
+  const meta = CATEGORY_META[group.category];
+  const completedCount = group.requirements.filter(r => r.status === 'completed').length;
+  const inProgressCount = group.requirements.filter(r => r.status === 'in_progress').length;
+  const notStartedCount = group.requirements.filter(r => r.status === 'not_started').length;
+  const percent = group.totalCount > 0 ? Math.round((group.completedCount / group.totalCount) * 100) : 0;
+
+  const isComplete = group.completedCount === group.totalCount && group.totalCount > 0;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] p-0 overflow-hidden">
+        {/* Header */}
+        <div className={cn(
+          'px-6 pt-6 pb-4 border-b',
+          isComplete ? 'bg-green-50 border-green-100' : 'bg-slate-50 border-slate-100'
+        )}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2.5 text-lg font-bold text-slate-800">
+              <span className="text-xl">{meta.icon}</span>
+              {meta.label}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-slate-500 mt-1">{group.description}</p>
+
+          {/* Progress bar */}
+          <div className="mt-3 space-y-1.5">
+            <div className="relative flex h-2 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className={cn(
+                  'h-full rounded-full transition-all',
+                  isComplete ? 'bg-green-500' : 'bg-blue-500'
+                )}
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-slate-500">
+              <div className="flex items-center gap-3">
+                {completedCount > 0 && (
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    {completedCount} done
+                  </span>
+                )}
+                {inProgressCount > 0 && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-amber-500" />
+                    {inProgressCount} in progress
+                  </span>
+                )}
+                {notStartedCount > 0 && (
+                  <span className="flex items-center gap-1">
+                    <Circle className="h-3 w-3 text-slate-400" />
+                    {notStartedCount} remaining
+                  </span>
+                )}
+              </div>
+              <span className="font-medium">
+                {group.completedCredits} / {group.totalCredits} cr
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Requirements list */}
+        <ScrollArea className="max-h-[60vh]">
+          <div className="px-4 py-3 divide-y divide-border/50">
+            {group.requirements.map((req) => (
+              <RequirementItem key={req.id} requirement={req} />
+            ))}
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function RequirementsOverview() {
   const { groups, totalCompleted, totalRequirements } = useRequirements();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<RequirementGroup | null>(null);
 
   const overallPercent =
     totalRequirements > 0 ? Math.round((totalCompleted / totalRequirements) * 100) : 0;
+
+  const openDialog = (group: RequirementGroup) => {
+    setActiveGroup(group);
+    setDialogOpen(true);
+  };
 
   return (
     <div className="space-y-4">
@@ -130,9 +247,17 @@ export function RequirementsOverview() {
             totalCount={group.totalCount}
             completedCredits={group.completedCredits}
             totalCredits={group.totalCredits}
+            onClick={() => openDialog(group)}
           />
         ))}
       </div>
+
+      {/* Detail dialog */}
+      <CategoryDetailDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        group={activeGroup}
+      />
     </div>
   );
 }
