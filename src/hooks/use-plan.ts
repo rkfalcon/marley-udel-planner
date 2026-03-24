@@ -210,37 +210,30 @@ export function usePlan() {
     });
   }, []);
 
-  const savePlan = useCallback(async (pin?: string) => {
-    if (!plan) return;
-    if (!isSupabaseConfigured()) {
-      // Save to localStorage as fallback
-      const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
-      plans[plan.slug] = { ...plan, pin };
-      localStorage.setItem('udel-plans', JSON.stringify(plans));
-      return plan.slug;
+  const savePlan = useCallback(async (pin?: string, options?: { forceNew?: boolean }) => {
+    if (!plan) return null;
+
+    const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
+    const existingPlan = plans[plan.slug];
+
+    // PIN verification for existing plans (not forceNew)
+    if (existingPlan && !options?.forceNew) {
+      // If the existing plan has a pin, verify it matches
+      if (existingPlan.pin && pin !== existingPlan.pin) {
+        throw new Error('WRONG_PIN');
+      }
     }
 
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/plans', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, pin }),
-      });
-      if (!response.ok) throw new Error('Failed to save plan');
-      const data = await response.json();
-      return data.slug;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save');
-      // Fallback to localStorage
-      const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
-      plans[plan.slug] = { ...plan, pin };
-      localStorage.setItem('udel-plans', JSON.stringify(plans));
-      return plan.slug;
-    } finally {
-      setLoading(false);
-    }
+    // Save to localStorage — preserve original pin for updates, use new pin for new plans
+    const pinToStore = options?.forceNew ? pin : (existingPlan?.pin || pin);
+    const updatedPlan = { ...plan, updatedAt: new Date().toISOString() };
+    plans[plan.slug] = { ...updatedPlan, pin: pinToStore };
+    localStorage.setItem('udel-plans', JSON.stringify(plans));
+
+    // Also update the in-memory plan state
+    setPlan(updatedPlan);
+
+    return plan.slug;
   }, [plan]);
 
   const loadPlan = useCallback(async (slug: string) => {
