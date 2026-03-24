@@ -96,7 +96,7 @@ export default function NewPlanPage() {
 
   const futureSemesters = SEMESTER_PREVIEWS[targetGraduation] || [];
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!name.trim()) {
       setError('Please enter a plan name');
       return;
@@ -104,10 +104,16 @@ export default function NewPlanPage() {
     setError('');
 
     const plan = createPlan(name.trim(), targetGraduation, isEarlyGraduation);
-    // Save to localStorage immediately so the plan page can load it
-    const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
-    plans[plan.slug] = plan;
-    localStorage.setItem('udel-plans', JSON.stringify(plans));
+    // Save to database immediately so the plan page can load it
+    try {
+      await fetch('/api/plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, action: 'create' }),
+      });
+    } catch {
+      // If save fails, the plan page will show not found — but proceed anyway
+    }
     router.push(`/plan/${plan.slug}`);
   };
 
