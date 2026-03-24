@@ -3,7 +3,10 @@
 import { useMemo } from 'react';
 import { REQUIREMENTS, REQUIREMENT_GROUPS } from '@/lib/data/requirements';
 import { COMPLETED_COURSES } from '@/lib/data/marley-progress';
+import { SECOND_WRITING_ALL_CODES } from '@/lib/data/second-writing-courses';
 import { RequirementWithStatus, RequirementGroup, CompletedCourse, PlanCourse } from '@/lib/types';
+
+const secondWritingSet = new Set(SECOND_WRITING_ALL_CODES);
 
 function getRequirementStatus(
   req: typeof REQUIREMENTS[number],
