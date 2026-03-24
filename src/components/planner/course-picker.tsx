@@ -652,7 +652,7 @@ export function CoursePicker({
               completedCodes={completedCodes}
             />
           )}
-        </ScrollArea>
+        </div>
       </SheetContent>
     </Sheet>
   );
