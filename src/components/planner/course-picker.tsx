@@ -195,16 +195,8 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
 
       // For electives, don't show misleading 1/1 — show credit-based info
       if (group.category === 'elective') {
-        const completedCr = COMPLETED_COURSES
-          .filter(c => c.status === 'completed' || c.status === 'transfer')
-          .reduce((s, c) => s + c.credits, 0);
-        const inProgressCr = COMPLETED_COURSES
-          .filter(c => c.status === 'in_progress')
-          .reduce((s, c) => s + c.credits, 0);
-        const plannedCr = plannedCodes.size * 3;
-        const totalCr = completedCr + inProgressCr + plannedCr;
-        const remaining = Math.max(0, 124 - totalCr);
-        const isComplete = totalCr >= 124;
+        const remaining = Math.max(0, 124 - totalCreditsInPlan);
+        const isComplete = totalCreditsInPlan >= 124;
 
         sections.push({
           category: group.category,
