@@ -131,20 +131,27 @@ export default function PlanEditorPage() {
     setPinError('');
     setSaveLoading(true);
     try {
-      // First save the current plan state to localStorage under current slug (so it's up to date)
-      // Then copy it to a new slug
       if (plan) {
-        // Save current state first
-        const allPlans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
-        allPlans[plan.slug] = { ...plan, updatedAt: new Date().toISOString(), pin: allPlans[plan.slug]?.pin };
-
-        // Create copy under new slug
+        // Create new slug for the copy
         const newSlug = newPlanName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Math.random().toString(36).substring(2, 6);
-        const newPlan = { ...plan, name: newPlanName.trim(), slug: newSlug, id: crypto.randomUUID(), updatedAt: new Date().toISOString() };
-        allPlans[newSlug] = { ...newPlan, pin };
-        localStorage.setItem('udel-plans', JSON.stringify(allPlans));
-        setSavedSlug(newSlug);
-        setSaveMode('done');
+        // Temporarily update plan state to use new name/slug for the save
+        const originalSlug = plan.slug;
+        const originalName = plan.name;
+        setPlan({ ...plan, name: newPlanName.trim(), slug: newSlug });
+        // Wait for ref to update
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        try {
+          const resultSlug = await savePlan(pin, { action: 'create' });
+          if (resultSlug) {
+            setSavedSlug(resultSlug);
+            setSaveMode('done');
+          }
+        } catch {
+          // Restore original plan on failure
+          setPlan({ ...plan, name: originalName, slug: originalSlug });
+          setPinError('Failed to save. Please try again.');
+        }
       }
     } finally {
       setSaveLoading(false);
