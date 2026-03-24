@@ -48,7 +48,7 @@ export default function PlanEditorPage() {
   const [savedSlug, setSavedSlug] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
-  const isExistingPlan = typeof window !== 'undefined' && !!JSON.parse(localStorage.getItem('udel-plans') || '{}')[slug];
+  const [isExistingPlan, setIsExistingPlan] = useState(false);
 
   // Load plan on mount
   useEffect(() => {
