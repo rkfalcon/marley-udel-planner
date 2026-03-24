@@ -245,61 +245,108 @@ export default function PlanEditorPage() {
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle className="text-lg font-bold text-slate-800">
-                  {savedSlug ? 'Plan Saved!' : 'Save Your Plan'}
+                  {saveMode === 'done' ? 'Plan Saved!' : saveMode === 'new' ? 'Save as New Plan' : saveMode === 'update' ? 'Update Existing Plan' : 'Save Your Plan'}
                 </DialogTitle>
               </DialogHeader>
 
-              {!savedSlug ? (
+              {saveMode === 'choose' && isExistingPlan ? (
+                <div className="space-y-4 pt-2">
+                  <p className="text-sm text-slate-500">
+                    This plan already exists. Would you like to update it or save a new copy?
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setSaveMode('update')}
+                      className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-all text-center"
+                    >
+                      <Save className="h-6 w-6 text-blue-500" />
+                      <span className="text-sm font-semibold text-slate-700">Update Plan</span>
+                      <span className="text-[11px] text-slate-400">Overwrite the current saved version</span>
+                    </button>
+                    <button
+                      onClick={() => { setSaveMode('new'); setNewPlanName(plan?.name ? plan.name + ' (copy)' : ''); }}
+                      className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center"
+                    >
+                      <Copy className="h-6 w-6 text-emerald-500" />
+                      <span className="text-sm font-semibold text-slate-700">Save as New</span>
+                      <span className="text-[11px] text-slate-400">Keep the old plan and create a new one</span>
+                    </button>
+                  </div>
+                </div>
+              ) : saveMode === 'choose' || saveMode === 'update' ? (
                 <div className="space-y-5 pt-2">
                   <p className="text-sm text-slate-500">
-                    Set a PIN to protect your plan. You&apos;ll need it to
-                    edit or share the plan later.
+                    {isExistingPlan ? 'Enter your PIN to update the plan.' : 'Set a PIN to protect your plan. You\'ll need it to edit or share the plan later.'}
                   </p>
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="save-pin"
-                      className="text-sm font-semibold text-slate-700"
-                    >
-                      Plan PIN
-                    </Label>
+                    <Label htmlFor="save-pin" className="text-sm font-semibold text-slate-700">Plan PIN</Label>
                     <Input
                       id="save-pin"
                       type="password"
                       value={pin}
-                      onChange={(e) => {
-                        setPin(e.target.value);
-                        if (pinError) setPinError('');
-                      }}
+                      onChange={(e) => { setPin(e.target.value); if (pinError) setPinError(''); }}
                       placeholder="Enter a PIN (min. 4 characters)"
-                      className={cn(
-                        'border-slate-200 focus:border-blue-300',
-                        pinError && 'border-red-300'
-                      )}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+                      className={cn('border-slate-200 focus:border-blue-300', pinError && 'border-red-300')}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSaveUpdate()}
                     />
-                    {pinError && (
-                      <p className="text-xs text-red-500">{pinError}</p>
-                    )}
+                    {pinError && <p className="text-xs text-red-500">{pinError}</p>}
                   </div>
 
-                  <Button
-                    onClick={handleSave}
-                    disabled={saveLoading || !pin.trim()}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                  >
+                  <Button onClick={handleSaveUpdate} disabled={saveLoading || !pin.trim()} className="w-full bg-blue-600 hover:bg-blue-700">
                     {saveLoading ? (
-                      <span className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Saving...
-                      </span>
+                      <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Saving...</span>
                     ) : (
-                      <span className="flex items-center gap-2">
-                        <Save className="h-4 w-4" />
-                        Save Plan
-                      </span>
+                      <span className="flex items-center gap-2"><Save className="h-4 w-4" />{isExistingPlan && saveMode === 'update' ? 'Update Plan' : 'Save Plan'}</span>
                     )}
                   </Button>
+                  {saveMode === 'update' && (
+                    <button onClick={() => setSaveMode('choose')} className="w-full text-xs text-slate-400 hover:text-slate-600 transition-colors">
+                      ← Back to options
+                    </button>
+                  )}
+                </div>
+              ) : saveMode === 'new' ? (
+                <div className="space-y-5 pt-2">
+                  <p className="text-sm text-slate-500">
+                    Save this as a new plan with a different name and URL. The original plan will be preserved.
+                  </p>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="new-plan-name" className="text-sm font-semibold text-slate-700">New Plan Name</Label>
+                    <Input
+                      id="new-plan-name"
+                      value={newPlanName}
+                      onChange={(e) => { setNewPlanName(e.target.value); if (pinError) setPinError(''); }}
+                      placeholder="e.g. Spring 2028 Plan v2"
+                      className="border-slate-200 focus:border-emerald-300"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="new-plan-pin" className="text-sm font-semibold text-slate-700">PIN for New Plan</Label>
+                    <Input
+                      id="new-plan-pin"
+                      type="password"
+                      value={pin}
+                      onChange={(e) => { setPin(e.target.value); if (pinError) setPinError(''); }}
+                      placeholder="Enter a PIN (min. 4 characters)"
+                      className={cn('border-slate-200 focus:border-emerald-300', pinError && 'border-red-300')}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSaveAsNew()}
+                    />
+                    {pinError && <p className="text-xs text-red-500">{pinError}</p>}
+                  </div>
+
+                  <Button onClick={handleSaveAsNew} disabled={saveLoading || !pin.trim() || !newPlanName.trim()} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                    {saveLoading ? (
+                      <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Saving...</span>
+                    ) : (
+                      <span className="flex items-center gap-2"><Copy className="h-4 w-4" />Save as New Plan</span>
+                    )}
+                  </Button>
+                  <button onClick={() => setSaveMode('choose')} className="w-full text-xs text-slate-400 hover:text-slate-600 transition-colors">
+                    ← Back to options
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-5 pt-2">
