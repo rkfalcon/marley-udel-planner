@@ -80,7 +80,19 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
 
       // Get available courses for this requirement
       let courses: Course[] = [];
-      if (req.courseOptions && req.courseOptions.length > 0) {
+
+      // Special handling for Second Writing — use curated list
+      if (req.id === 'second-writing' && school === 'udel') {
+        courses = SECOND_WRITING_COURSES.map(sw => ({
+          id: `sw-${sw.code.replace(/\s/g, '-')}`,
+          school: 'udel' as const,
+          courseCode: sw.code,
+          title: sw.title,
+          credits: sw.credits,
+          attributes: ['CAS Second Writing'],
+          typicallyOffered: 'Fall, Spring',
+        }));
+      } else if (req.courseOptions && req.courseOptions.length > 0) {
         if (school === 'udel') {
           courses = req.courseOptions
             .map(code => COURSES.find(c => c.courseCode === code && c.school === 'udel'))
