@@ -215,14 +215,15 @@ export function usePlan() {
   }, []);
 
   const savePlan = useCallback(async (pin?: string, options?: { forceNew?: boolean }) => {
-    if (!plan) return null;
+    // Use ref to always get the latest plan state (avoids stale closure)
+    const currentPlan = planRef.current;
+    if (!currentPlan) return null;
 
     const plans = JSON.parse(localStorage.getItem('udel-plans') || '{}');
-    const existingPlan = plans[plan.slug];
+    const existingPlan = plans[currentPlan.slug];
 
     // PIN verification for existing plans (not forceNew)
     if (existingPlan && !options?.forceNew) {
-      // If the existing plan has a pin, verify it matches
       if (existingPlan.pin && pin !== existingPlan.pin) {
         throw new Error('WRONG_PIN');
       }
@@ -230,15 +231,15 @@ export function usePlan() {
 
     // Save to localStorage — preserve original pin for updates, use new pin for new plans
     const pinToStore = options?.forceNew ? pin : (existingPlan?.pin || pin);
-    const updatedPlan = { ...plan, updatedAt: new Date().toISOString() };
-    plans[plan.slug] = { ...updatedPlan, pin: pinToStore };
+    const updatedPlan = { ...currentPlan, updatedAt: new Date().toISOString() };
+    plans[currentPlan.slug] = { ...updatedPlan, pin: pinToStore };
     localStorage.setItem('udel-plans', JSON.stringify(plans));
 
     // Also update the in-memory plan state
     setPlan(updatedPlan);
 
-    return plan.slug;
-  }, [plan]);
+    return currentPlan.slug;
+  }, []);
 
   const loadPlan = useCallback(async (slug: string) => {
     setLoading(true);
