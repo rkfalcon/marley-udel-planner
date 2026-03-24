@@ -149,11 +149,11 @@ export const REQUIREMENTS: Requirement[] = [
     id: 'second-writing',
     category: 'college',
     name: 'Second Writing Requirement',
-    description: 'After 60 credits earned, CAS Second Writing attribute',
+    description: 'After 60 credits earned. 385 approved courses across all departments.',
     creditsRequired: 3,
     fulfillmentType: 'any',
     sortOrder: 6,
-    courseOptions: [],
+    courseOptions: [], // Handled specially — too many to list; see second-writing-courses.ts
   },
 
   // ========== MAJOR CORE REQUIREMENTS ==========
