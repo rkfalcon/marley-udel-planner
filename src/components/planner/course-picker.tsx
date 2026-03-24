@@ -28,8 +28,7 @@ interface CoursePickerProps {
 }
 
 // Build a structured list of requirements with their course options
-function buildRequirementSections(school: 'udel' | 'brookdale', query: string) {
-  const completedCodes = new Set(COMPLETED_COURSES.map(c => c.courseCode));
+function buildRequirementSections(school: 'udel' | 'brookdale', query: string, plannedCodes: Set<string> = new Set()) {
   const q = query.toLowerCase();
 
   // Group requirements by category
@@ -37,6 +36,8 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string) {
     category: RequirementCategory;
     label: string;
     description: string;
+    fulfilledCount: number;
+    totalCount: number;
     requirements: {
       id: string;
       name: string;
@@ -51,7 +52,7 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string) {
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
     const reqItems = reqs.map(req => {
-      // Determine status
+      // Determine status from completed/in-progress courses
       let status: 'completed' | 'in_progress' | 'not_started' = 'not_started';
       for (const cc of COMPLETED_COURSES) {
         const fulfills = cc.fulfillsRequirements?.includes(req.id);
@@ -62,6 +63,16 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string) {
             break;
           } else if (cc.status === 'in_progress') {
             status = 'in_progress';
+          }
+        }
+      }
+
+      // Check if any planned course fulfills this requirement
+      if (status === 'not_started' && req.courseOptions) {
+        for (const code of req.courseOptions) {
+          if (plannedCodes.has(code)) {
+            status = 'in_progress';
+            break;
           }
         }
       }
