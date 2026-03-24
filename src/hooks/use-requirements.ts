@@ -123,6 +123,7 @@ export function useRequirements(plannedCourses: PlanCourse[] = []) {
     });
 
     const totalCompleted = requirementsWithStatus.filter(r => r.status === 'completed').length;
+    const totalFulfilled = requirementsWithStatus.filter(r => r.status === 'completed' || (r.status === 'in_progress' && r.fulfilledBy)).length;
     const totalInProgress = requirementsWithStatus.filter(r => r.status === 'in_progress').length;
     const totalNotStarted = requirementsWithStatus.filter(r => r.status === 'not_started').length;
 
@@ -130,6 +131,7 @@ export function useRequirements(plannedCourses: PlanCourse[] = []) {
       groups,
       requirementsWithStatus,
       totalCompleted,
+      totalFulfilled,
       totalInProgress,
       totalNotStarted,
       totalRequirements: requirementsWithStatus.length,
