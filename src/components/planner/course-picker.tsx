@@ -589,8 +589,8 @@ export function CoursePicker({
                     >
                       {isSectionExpanded ? <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />}
                       <span className="text-sm font-semibold text-slate-700 flex-1">{section.label}</span>
-                      <span className={cn('text-xs font-medium tabular-nums', allDone ? 'text-green-600' : completedReqs > 0 ? 'text-amber-600' : 'text-slate-400')}>
-                        {completedReqs}/{totalReqs}
+                      <span className={cn('text-xs font-medium tabular-nums', allDone ? 'text-green-600' : fulfilledReqs > 0 ? 'text-amber-600' : 'text-slate-400')}>
+                        {fulfilledReqs}/{totalReqs}
                       </span>
                     </button>
 
