@@ -212,6 +212,94 @@ function CourseButton({
   );
 }
 
+function CustomCourseEntry({
+  school,
+  onAdd,
+}: {
+  school: 'udel' | 'brookdale';
+  onAdd: (course: Course) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [code, setCode] = useState('');
+  const [title, setTitle] = useState('');
+  const [credits, setCredits] = useState('3');
+
+  const handleAdd = () => {
+    if (!code.trim() || !title.trim()) return;
+    onAdd({
+      id: `custom-${Date.now()}`,
+      school,
+      courseCode: code.trim().toUpperCase(),
+      title: title.trim(),
+      credits: parseInt(credits) || 3,
+    });
+    setCode('');
+    setTitle('');
+    setCredits('3');
+  };
+
+  return (
+    <div className="rounded-lg border border-dashed border-slate-300 overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+      >
+        <Plus className="h-4 w-4 text-slate-400 shrink-0" />
+        <span className="text-sm font-semibold text-slate-600 flex-1">
+          Add Any Course
+        </span>
+        <span className="text-[10px] text-slate-400">
+          Type any {school === 'udel' ? 'UDel' : 'Brookdale'} course
+        </span>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-slate-200 px-4 py-3 space-y-2.5 bg-slate-50/50">
+          <p className="text-[11px] text-slate-500">
+            Enter any course from the {school === 'udel' ? 'University of Delaware' : 'Brookdale CC'} catalog:
+          </p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="e.g. PSYC 310"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="h-8 text-xs flex-1"
+            />
+            <Input
+              placeholder="Credits"
+              value={credits}
+              onChange={(e) => setCredits(e.target.value)}
+              className="h-8 text-xs w-16"
+              type="number"
+              min="1"
+              max="6"
+            />
+          </div>
+          <Input
+            placeholder="Course title (e.g. Social Psychology)"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="h-8 text-xs"
+            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          />
+          <button
+            onClick={handleAdd}
+            disabled={!code.trim() || !title.trim()}
+            className={cn(
+              'w-full h-8 rounded-md text-xs font-semibold transition-colors',
+              code.trim() && title.trim()
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+            )}
+          >
+            Add to Semester
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CoursePicker({
   open,
   onOpenChange,
