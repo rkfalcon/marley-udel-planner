@@ -42,7 +42,8 @@ export function CourseChip({
 
   const creditsBadgeClasses = cn(
     'ml-0.5 h-4 min-w-4 rounded px-1 text-[10px] font-semibold leading-4',
-    {
+    isPlaceholder && 'bg-orange-200 text-orange-700',
+    !isPlaceholder && {
       'bg-emerald-200 text-emerald-700':
         status === 'completed' && school === 'udel',
       'bg-cyan-200 text-cyan-700':
@@ -57,7 +58,7 @@ export function CourseChip({
 
   return (
     <div className={containerClasses} title={title}>
-      <span className="truncate max-w-[120px] leading-none">{courseCode}</span>
+      <span className="truncate max-w-[120px] leading-none">{displayCode}</span>
 
       <span className={creditsBadgeClasses}>{credits}cr</span>
 
