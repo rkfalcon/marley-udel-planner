@@ -299,7 +299,19 @@ export default function PlanEditorPage() {
                       className={cn('border-slate-200 focus:border-blue-300', pinError && 'border-red-300')}
                       onKeyDown={(e) => e.key === 'Enter' && handleSaveUpdate()}
                     />
-                    {pinError && <p className="text-xs text-red-500">{pinError}</p>}
+                    {pinError && (
+                      <div className="space-y-1.5">
+                        <p className="text-xs text-red-500">{pinError}</p>
+                        {pinError.includes('Incorrect PIN') && (
+                          <button
+                            onClick={() => { setSaveMode('new'); setPin(''); setPinError(''); setNewPlanName(plan?.name ? plan.name + ' (updated)' : ''); }}
+                            className="text-xs text-emerald-600 hover:text-emerald-700 font-medium underline underline-offset-2"
+                          >
+                            Save as a new plan instead →
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <Button onClick={handleSaveUpdate} disabled={saveLoading || !pin.trim()} className="w-full bg-blue-600 hover:bg-blue-700">
