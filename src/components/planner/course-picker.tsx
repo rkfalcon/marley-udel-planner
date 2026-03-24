@@ -390,6 +390,91 @@ function BrookdaleTransferList({
   );
 }
 
+function SecondWritingCustomEntry({
+  onAdd,
+}: {
+  onAdd: (course: Course) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [code, setCode] = useState('');
+  const [title, setTitle] = useState('');
+
+  const handleAdd = () => {
+    if (!code.trim() || !title.trim()) return;
+    const courseCode = code.trim().toUpperCase();
+    onAdd({
+      id: `sw-custom-${Date.now()}`,
+      school: 'udel',
+      courseCode,
+      title: title.trim(),
+      credits: 3,
+      attributes: ['CAS Second Writing'],
+    });
+    setCode('');
+    setTitle('');
+    setExpanded(false);
+  };
+
+  return (
+    <div className="mx-1 mt-2 rounded-lg border border-dashed border-blue-300 bg-blue-50/30 overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-blue-50/60 transition-colors"
+      >
+        <Plus className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+        <span className="text-xs font-medium text-blue-600 flex-1">
+          Don&apos;t see your course? Add any approved course
+        </span>
+        {expanded ? <ChevronDown className="h-3 w-3 text-blue-400" /> : <ChevronRight className="h-3 w-3 text-blue-400" />}
+      </button>
+
+      {expanded && (
+        <div className="border-t border-blue-200 px-3 py-2.5 space-y-2 bg-blue-50/40">
+          <a
+            href="https://catalog.udel.edu/preview_program.php?catoid=90&poid=78217"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-[11px] font-medium text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            <ExternalLink className="h-3 w-3" />
+            View full list of 385 approved courses at UDel Catalog
+          </a>
+          <p className="text-[10px] text-slate-500">
+            Find a course from the link above, then enter it here:
+          </p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="e.g. PSYC 416"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="h-7 text-xs flex-1 bg-white"
+            />
+          </div>
+          <Input
+            placeholder="Course title (e.g. Psychological Perspectives on the Black American)"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="h-7 text-xs bg-white"
+            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          />
+          <button
+            onClick={handleAdd}
+            disabled={!code.trim() || !title.trim()}
+            className={cn(
+              'w-full h-7 rounded-md text-xs font-semibold transition-colors',
+              code.trim() && title.trim()
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+            )}
+          >
+            Add to Semester
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CustomCourseEntry({
   school,
   onAdd,
