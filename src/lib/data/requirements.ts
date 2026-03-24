@@ -25,11 +25,25 @@ export const REQUIREMENTS: Requirement[] = [
     id: 'dle',
     category: 'university',
     name: 'Discovery Learning Experience (DLE)',
-    description: 'Course with DLE attribute',
+    description: 'Hands-on learning: internship, research, study abroad, service-learning, or DLE-designated course',
     creditsRequired: 3,
     fulfillmentType: 'any',
     sortOrder: 3,
-    courseOptions: [],
+    courseOptions: [
+      // Study Abroad
+      'UNIV 370', 'UNIV 371', 'UNIV 372', 'UNIV 373',
+      // CGSC / SLP-relevant DLE options
+      'CGSC 464', 'CGSC 466',
+      // Internship/Research (common DLE paths)
+      'UNIV 401', 'UNIV 402',
+      // LING research
+      'LING 466',
+      // PSYC research
+      'PSYC 484',
+      // Common DLE-designated courses across departments
+      'HDFS 464', 'EDUC 400', 'EDUC 401',
+      'COMM 464', 'SOCI 464',
+    ],
   },
   {
     id: 'multicultural',
