@@ -90,7 +90,7 @@ export function GraduationTracker({ plan }: GraduationTrackerProps) {
   }, [plan, isOnTrack]);
 
   const requirementSummary = useMemo(() => {
-    return { met: totalCompleted, inProgress: totalInProgress, total: totalRequirements };
+    return { met: totalFulfilled, inProgress: totalInProgress, total: totalRequirements };
   }, [totalCompleted, totalInProgress, totalRequirements]);
 
   return (
