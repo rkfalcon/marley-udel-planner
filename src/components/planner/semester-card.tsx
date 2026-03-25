@@ -92,7 +92,12 @@ export function SemesterCard({
             </Badge>
           </div>
         </div>
-        {isBreak && (
+        {isPriorTransfer && (
+          <p className="text-white/70 text-[10px] mt-0.5 leading-tight">
+            Credits from Brookdale CC
+          </p>
+        )}
+        {isBreak && !isPriorTransfer && (
           <p className="text-white/70 text-[10px] mt-0.5 leading-tight">
             {term === 'Summer' ? 'Summer Session' : 'Winter Session'}
           </p>
