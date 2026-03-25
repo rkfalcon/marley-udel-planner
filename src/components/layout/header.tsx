@@ -19,6 +19,7 @@ const navLinks = [
   { href: "/requirements", label: "Requirements", icon: BookOpen },
   { href: "/plan/new", label: "Plan Builder", icon: Calendar },
   { href: "/transfer", label: "Transfer Credits", icon: ArrowRightLeft },
+  { href: "/links", label: "Useful Links", icon: LinkIcon },
 ];
 
 export function Header() {
