@@ -26,10 +26,16 @@ const SEMESTER_ORDER: Record<string, number> = {
 };
 
 function isSemesterLocked(semester: PlanSemester): boolean {
-  if (semester.year < CURRENT_YEAR) return true;
-  if (semester.year === CURRENT_YEAR) {
-    return SEMESTER_ORDER[semester.term] <= CURRENT_TERM_ORDER;
-  }
+  // Convert to calendar position for comparison
+  // Winter N actually happens in Jan of N+1, so its calendar year is N+1
+  const calYear = semester.term === 'Winter' ? semester.year + 1 : semester.year;
+  const calMonth = { Winter: 1, Spring: 3, Summer: 6, Fall: 9 }[semester.term] || 0;
+
+  const currentCalYear = CURRENT_YEAR;
+  const currentCalMonth = 3; // Spring = March
+
+  if (calYear < currentCalYear) return true;
+  if (calYear === currentCalYear && calMonth <= currentCalMonth) return true;
   return false;
 }
 
