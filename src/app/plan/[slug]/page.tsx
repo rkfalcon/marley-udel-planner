@@ -35,7 +35,7 @@ export default function PlanEditorPage() {
   const params = useParams();
   const slug = params?.slug as string;
 
-  const { plan, loading, loadPlan, addCourse, removeCourse, savePlan } =
+  const { plan, setPlan, loading, loadPlan, addCourse, removeCourse, savePlan } =
     usePlan();
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
