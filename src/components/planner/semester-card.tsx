@@ -83,11 +83,9 @@ export function SemesterCard({
             <Badge
               className={cn(
                 'text-[10px] px-1.5 py-0 h-4 font-semibold border-0',
-                {
-                  'bg-blue-500 text-white': !isBrookdale && !isLocked,
-                  'bg-emerald-500 text-white': isBrookdale && !isLocked,
-                  'bg-slate-300 text-slate-700': isLocked,
-                }
+                !isBrookdale && !isLocked && 'bg-blue-500 text-white',
+                isBrookdale && 'bg-emerald-500 text-white',
+                isLocked && !isBrookdale && 'bg-slate-300 text-slate-700'
               )}
             >
               {isBrookdale ? 'Brookdale' : 'UDel'}
