@@ -217,3 +217,113 @@ export async function POST(request: NextRequest) {
   }
   return NextResponse.json({ slug, action: 'created' });
 }
+
+// DELETE /api/plans?slug=xxx
+// Body: { pin }
+export async function DELETE(request: NextRequest) {
+  const slug = request.nextUrl.searchParams.get('slug');
+  if (!slug) {
+    return NextResponse.json({ error: 'Slug required' }, { status: 400 });
+  }
+
+  const body = await request.json().catch(() => ({}));
+  const { pin } = body as { pin?: string };
+
+  const supabase = getSupabase();
+
+  const { data: existing } = await supabase
+    .from('plans')
+    .select('id, pin_hash')
+    .eq('slug', slug)
+    .single();
+
+  if (!existing) {
+    return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
+  }
+
+  // Verify PIN
+  if (existing.pin_hash) {
+    const isBcrypt = existing.pin_hash.startsWith('$2');
+    const pinValid = isBcrypt
+      ? await bcrypt.compare(pin || '', existing.pin_hash)
+      : existing.pin_hash === pin;
+    if (!pinValid) {
+      return NextResponse.json({ error: 'WRONG_PIN' }, { status: 403 });
+    }
+  }
+
+  // Delete legacy table data first
+  const { data: semesters } = await supabase
+    .from('plan_semesters')
+    .select('id')
+    .eq('plan_id', existing.id);
+
+  if (semesters && semesters.length > 0) {
+    const semIds = semesters.map(s => s.id);
+    await supabase.from('plan_courses').delete().in('plan_semester_id', semIds);
+    await supabase.from('plan_semesters').delete().eq('plan_id', existing.id);
+  }
+
+  // Delete the plan
+  const { error } = await supabase.from('plans').delete().eq('slug', slug);
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ success: true });
+}
+
+// PATCH /api/plans
+// Body: { slug, pin, newName }
+export async function PATCH(request: NextRequest) {
+  const body = await request.json();
+  const { slug, pin, newName } = body as { slug: string; pin?: string; newName?: string };
+
+  if (!slug) {
+    return NextResponse.json({ error: 'Slug required' }, { status: 400 });
+  }
+
+  const supabase = getSupabase();
+
+  const { data: existing } = await supabase
+    .from('plans')
+    .select('id, pin_hash, description')
+    .eq('slug', slug)
+    .single();
+
+  if (!existing) {
+    return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
+  }
+
+  // Verify PIN
+  if (existing.pin_hash) {
+    const isBcrypt = existing.pin_hash.startsWith('$2');
+    const pinValid = isBcrypt
+      ? await bcrypt.compare(pin || '', existing.pin_hash)
+      : existing.pin_hash === pin;
+    if (!pinValid) {
+      return NextResponse.json({ error: 'WRONG_PIN' }, { status: 403 });
+    }
+  }
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+
+  if (newName) {
+    updates.name = newName;
+    // Also update the name inside the JSON description
+    if (existing.description) {
+      try {
+        const planData = JSON.parse(existing.description);
+        planData.name = newName;
+        updates.description = JSON.stringify(planData);
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }
+
+  const { error } = await supabase.from('plans').update(updates).eq('slug', slug);
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ success: true, slug });
+}
