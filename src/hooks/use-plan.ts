@@ -84,36 +84,50 @@ function createPastSemesters(): PlanSemester[] {
       grade: c.grade,
     }));
 
+  const priorId = generateId();
   const fall25Id = generateId();
-  const transferId = generateId();
+  const fall25BrookdaleId = generateId();
   const spring26Id = generateId();
 
   return [
+    // Prior transfer credits from Brookdale (before starting UDel)
+    {
+      id: priorId,
+      planId: '',
+      term: 'Summer' as Term,
+      year: 2025,
+      school: 'brookdale' as School,
+      sortOrder: 0,
+      courses: priorTransferCourses.map(c => ({ ...c, planSemesterId: priorId })),
+    },
+    // Fall 2025 at UDel
     {
       id: fall25Id,
       planId: '',
-      term: 'Fall',
+      term: 'Fall' as Term,
       year: 2025,
-      school: 'udel',
-      sortOrder: 0,
+      school: 'udel' as School,
+      sortOrder: 1,
       courses: fall25Courses.map(c => ({ ...c, planSemesterId: fall25Id })),
     },
-    {
-      id: transferId,
+    // Fall 2025 at Brookdale (HIST 105)
+    ...(fall25BrookdaleCourses.length > 0 ? [{
+      id: fall25BrookdaleId,
       planId: '',
-      term: 'Fall',
+      term: 'Fall' as Term,
       year: 2025,
-      school: 'brookdale',
-      sortOrder: 1,
-      courses: transferCourses.map(c => ({ ...c, planSemesterId: transferId })),
-    },
+      school: 'brookdale' as School,
+      sortOrder: 2,
+      courses: fall25BrookdaleCourses.map(c => ({ ...c, planSemesterId: fall25BrookdaleId })),
+    }] : []),
+    // Spring 2026 at UDel
     {
       id: spring26Id,
       planId: '',
-      term: 'Spring',
+      term: 'Spring' as Term,
       year: 2026,
-      school: 'udel',
-      sortOrder: 2,
+      school: 'udel' as School,
+      sortOrder: 3,
       courses: spring26Courses.map(c => ({ ...c, planSemesterId: spring26Id })),
     },
   ];
