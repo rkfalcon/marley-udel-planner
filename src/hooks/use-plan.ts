@@ -86,7 +86,7 @@ function createPastSemesters(): PlanSemester[] {
 
   const priorId = generateId();
   const fall25Id = generateId();
-  const fall25BrookdaleId = generateId();
+  const winter25BrookdaleId = generateId();
   const spring26Id = generateId();
 
   return [
@@ -110,15 +110,15 @@ function createPastSemesters(): PlanSemester[] {
       sortOrder: 1,
       courses: fall25Courses.map(c => ({ ...c, planSemesterId: fall25Id })),
     },
-    // Fall 2025 at Brookdale (HIST 105)
-    ...(fall25BrookdaleCourses.length > 0 ? [{
-      id: fall25BrookdaleId,
+    // Winter 2025 at Brookdale (HIST 105)
+    ...(winter25BrookdaleCourses.length > 0 ? [{
+      id: winter25BrookdaleId,
       planId: '',
-      term: 'Fall' as Term,
+      term: 'Winter' as Term,
       year: 2025,
       school: 'brookdale' as School,
       sortOrder: 2,
-      courses: fall25BrookdaleCourses.map(c => ({ ...c, planSemesterId: fall25BrookdaleId })),
+      courses: winter25BrookdaleCourses.map(c => ({ ...c, planSemesterId: winter25BrookdaleId })),
     }] : []),
     // Spring 2026 at UDel
     {
