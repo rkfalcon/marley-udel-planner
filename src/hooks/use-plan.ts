@@ -135,30 +135,43 @@ function createPastSemesters(): PlanSemester[] {
 
 function createFutureSemesters(targetGrad: string): PlanSemester[] {
   const semesters: PlanSemester[] = [];
-  const terms: { term: Term; year: number }[] = [];
 
   const [targetTerm, targetYearStr] = targetGrad.split(' ');
   const targetYear = parseInt(targetYearStr);
 
-  const startTerms: Term[] = ['Summer', 'Fall'];
-  const fullTerms: Term[] = ['Winter', 'Spring', 'Summer', 'Fall'];
+  // Generate semesters in academic year order:
+  // Academic Year 2025-2026 remainder: Summer 2026 (Brookdale)
+  // Academic Year 2026-2027: Fall 2026 (UDel), Winter 2027 (Brookdale), Spring 2027 (UDel), Summer 2027 (Brookdale)
+  // Academic Year 2027-2028: Fall 2027 (UDel), Winter 2028 (Brookdale), Spring 2028 (UDel), Summer 2028 (Brookdale)
+  // etc.
 
-  for (const term of startTerms) {
-    terms.push({ term, year: 2026 });
+  const allTerms: { term: Term; year: number }[] = [];
+
+  // Summer 2026 (Brookdale) — end of academic year 2025-2026
+  allTerms.push({ term: 'Summer', year: 2026 });
+
+  // Generate full academic years starting from 2026-2027
+  for (let startYear = 2026; startYear <= targetYear; startYear++) {
+    // Fall of startYear (UDel)
+    allTerms.push({ term: 'Fall', year: startYear });
+    // Winter of startYear+1 (Brookdale)
+    allTerms.push({ term: 'Winter', year: startYear + 1 });
+    // Spring of startYear+1 (UDel)
+    allTerms.push({ term: 'Spring', year: startYear + 1 });
+    // Summer of startYear+1 (Brookdale)
+    allTerms.push({ term: 'Summer', year: startYear + 1 });
   }
 
-  for (let y = 2027; y <= targetYear; y++) {
-    for (const term of fullTerms) {
-      if (y === targetYear) {
-        const targetTermOrder = SEMESTER_ORDER[targetTerm as Term];
-        if (SEMESTER_ORDER[term] > targetTermOrder) break;
-      }
-      terms.push({ term, year: y });
-    }
-  }
+  // Filter: only include semesters up to and including the target graduation
+  const targetOrder = SEMESTER_ORDER[targetTerm as Term];
+  const filtered = allTerms.filter(({ term, year }) => {
+    if (year < targetYear) return true;
+    if (year === targetYear) return SEMESTER_ORDER[term] <= targetOrder;
+    return false;
+  });
 
   let sortOrder = 4;
-  for (const { term, year } of terms) {
+  for (const { term, year } of filtered) {
     const school = (term === 'Summer' || term === 'Winter') ? 'brookdale' : 'udel';
     semesters.push({
       id: generateId(),
