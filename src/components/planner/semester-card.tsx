@@ -37,7 +37,7 @@ export function SemesterCard({
   const totalCredits = courses.reduce((sum, c) => sum + c.credits, 0);
 
   // Special case: prior transfer credits (Summer 2025 Brookdale with all completed/transfer courses)
-  const isPriorTransfer = term === 'Summer' && year === 2025 && isBrookdale && isLocked &&
+  const isPriorTransfer = term === 'Summer' && year === 2024 && isBrookdale && isLocked &&
     courses.length > 0 && courses.every(c => c.status === 'completed' || c.status === 'transfer');
 
   const label = isPriorTransfer
