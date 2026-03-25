@@ -47,14 +47,18 @@ function groupByAcademicYear(
   const groups = new Map<string, PlanSemester[]>();
 
   for (const semester of semesters) {
-    // Academic year grouping with the convention:
-    // Fall N and Winter N → Academic Year N–(N+1)
-    // Spring N and Summer N → Academic Year (N-1)–N
+    // Special case: Prior Credits (Summer 2024 Brookdale) gets its own group
+    // It represents credits earned before starting at UDel
+    const isPriorCredits = semester.term === 'Summer' && semester.year === 2024 && semester.school === 'brookdale';
+
     let academicYear: string;
-    if (semester.term === 'Fall' || semester.term === 'Winter') {
+    if (isPriorCredits) {
+      academicYear = 'Prior to UDel';
+    } else if (semester.term === 'Fall' || semester.term === 'Winter') {
+      // Fall N and Winter N → Academic Year N–(N+1)
       academicYear = `${semester.year}–${semester.year + 1}`;
     } else {
-      // Spring and Summer
+      // Spring N and Summer N → Academic Year (N-1)–N
       academicYear = `${semester.year - 1}–${semester.year}`;
     }
 
