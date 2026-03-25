@@ -27,15 +27,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { usePlan } from '@/hooks/use-plan';
 import {
-  CalendarDays,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Calendar,
   Clock,
   Plus,
   GraduationCap,
-  ChevronRight,
-  MoreVertical,
-  Pencil,
-  Trash2,
-  AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
 
 interface PlanSummary {
