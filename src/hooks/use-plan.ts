@@ -43,9 +43,9 @@ function createPastSemesters(): PlanSemester[] {
       grade: c.grade,
     }));
 
-  // Prior transfer credits (taken before starting UDel — tagged as Summer 2025)
+  // Prior transfer credits (taken before starting UDel — tagged as Summer 2024)
   const priorTransferCourses: PlanCourse[] = COMPLETED_COURSES
-    .filter(c => c.status === 'transfer' && c.term === 'Summer' && c.year === 2025)
+    .filter(c => c.status === 'transfer' && c.term === 'Summer' && c.year === 2024)
     .map(c => ({
       id: generateId(),
       planSemesterId: '',
