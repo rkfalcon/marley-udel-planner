@@ -6,6 +6,7 @@ import {
   Save,
   Copy,
   CheckCheck,
+  Printer,
   GraduationCap,
   PanelRightOpen,
   PanelRightClose,
