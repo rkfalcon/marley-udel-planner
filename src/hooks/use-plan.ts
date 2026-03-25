@@ -168,8 +168,15 @@ function createFutureSemesters(targetGrad: string): PlanSemester[] {
   }
 
   const targetPos = calendarPosition(targetTerm as Term, targetYear);
+  // Include 1 extra Brookdale semester after target to complete the academic year
+  // e.g., if target is Spring 2028, also include Summer 2028 (Brookdale)
+  const extraPos = targetPos + 4 * 12; // generous buffer
   const filtered = allTerms.filter(({ term, year }) => {
-    return calendarPosition(term, year) <= targetPos;
+    const pos = calendarPosition(term, year);
+    if (pos <= targetPos) return true;
+    // Include the Summer/Winter that completes the same academic year as the target
+    if (term === 'Summer' && pos <= targetPos + 6) return true;
+    return false;
   });
 
   let sortOrder = 4;
