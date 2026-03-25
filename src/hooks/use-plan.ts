@@ -43,16 +43,31 @@ function createPastSemesters(): PlanSemester[] {
       grade: c.grade,
     }));
 
-  const transferCourses: PlanCourse[] = COMPLETED_COURSES
-    .filter(c => c.status === 'transfer')
+  // Prior transfer credits (taken before starting UDel — tagged as Summer 2025)
+  const priorTransferCourses: PlanCourse[] = COMPLETED_COURSES
+    .filter(c => c.status === 'transfer' && c.term === 'Summer' && c.year === 2025)
     .map(c => ({
       id: generateId(),
       planSemesterId: '',
       courseCode: c.courseCode,
       title: c.title,
-      school: 'brookdale',
+      school: 'brookdale' as School,
       credits: c.credits,
-      status: 'completed',
+      status: 'completed' as CourseStatus,
+      grade: c.grade,
+    }));
+
+  // Fall 2025 Brookdale courses (taken concurrently at Brookdale during Fall 2025)
+  const fall25BrookdaleCourses: PlanCourse[] = COMPLETED_COURSES
+    .filter(c => c.status === 'transfer' && c.term === 'Fall' && c.year === 2025 && c.school === 'brookdale')
+    .map(c => ({
+      id: generateId(),
+      planSemesterId: '',
+      courseCode: c.courseCode,
+      title: c.title,
+      school: 'brookdale' as School,
+      credits: c.credits,
+      status: 'completed' as CourseStatus,
       grade: c.grade,
     }));
 
