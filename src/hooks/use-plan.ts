@@ -139,46 +139,48 @@ function createFutureSemesters(targetGrad: string): PlanSemester[] {
   const [targetTerm, targetYearStr] = targetGrad.split(' ');
   const targetYear = parseInt(targetYearStr);
 
-  // Generate semesters in academic year order:
-  // Academic Year 2025-2026 remainder: Summer 2026 (Brookdale)
-  // Academic Year 2026-2027: Fall 2026 (UDel), Winter 2027 (Brookdale), Spring 2027 (UDel), Summer 2027 (Brookdale)
-  // Academic Year 2027-2028: Fall 2027 (UDel), Winter 2028 (Brookdale), Spring 2028 (UDel), Summer 2028 (Brookdale)
-  // etc.
+  // Convention: Winter uses the SAME year as its preceding Fall
+  // Academic Year 2025-2026: Fall 2025, Winter 2025, Spring 2026, Summer 2026
+  // Academic Year 2026-2027: Fall 2026, Winter 2026, Spring 2027, Summer 2027
+  // Academic Year 2027-2028: Fall 2027, Winter 2027, Spring 2028, Summer 2028
 
   const allTerms: { term: Term; year: number }[] = [];
 
-  // Summer 2026 (Brookdale) — end of academic year 2025-2026
+  // Summer 2026 (Brookdale) — completes academic year 2025-2026
   allTerms.push({ term: 'Summer', year: 2026 });
 
-  // Generate full academic years starting from 2026-2027
-  for (let startYear = 2026; startYear <= targetYear; startYear++) {
-    // Fall of startYear (UDel)
-    allTerms.push({ term: 'Fall', year: startYear });
-    // Winter of startYear+1 (Brookdale)
-    allTerms.push({ term: 'Winter', year: startYear + 1 });
-    // Spring of startYear+1 (UDel)
-    allTerms.push({ term: 'Spring', year: startYear + 1 });
-    // Summer of startYear+1 (Brookdale)
-    allTerms.push({ term: 'Summer', year: startYear + 1 });
+  // Full academic years: 2026-2027, 2027-2028, etc.
+  for (let fallYear = 2026; fallYear <= targetYear; fallYear++) {
+    allTerms.push({ term: 'Fall', year: fallYear });           // Fall N (UDel)
+    allTerms.push({ term: 'Winter', year: fallYear });         // Winter N (Brookdale) — winter break after Fall N
+    allTerms.push({ term: 'Spring', year: fallYear + 1 });     // Spring N+1 (UDel)
+    allTerms.push({ term: 'Summer', year: fallYear + 1 });     // Summer N+1 (Brookdale)
   }
 
-  // Filter: only include semesters up to and including the target graduation
-  const targetOrder = SEMESTER_ORDER[targetTerm as Term];
+  // Filter: keep semesters up to target graduation
+  // For filtering, convert to a comparable number using calendar position
+  function calendarPosition(term: Term, year: number): number {
+    // Map to actual calendar month order for comparison
+    const monthMap: Record<Term, number> = { Winter: 1, Spring: 3, Summer: 6, Fall: 9 };
+    // Winter N actually happens in January of N+1 (but we label it N)
+    const calYear = term === 'Winter' ? year + 1 : year;
+    return calYear * 12 + monthMap[term];
+  }
+
+  const targetPos = calendarPosition(targetTerm as Term, targetYear);
   const filtered = allTerms.filter(({ term, year }) => {
-    if (year < targetYear) return true;
-    if (year === targetYear) return SEMESTER_ORDER[term] <= targetOrder;
-    return false;
+    return calendarPosition(term, year) <= targetPos;
   });
 
   let sortOrder = 4;
   for (const { term, year } of filtered) {
-    const school = (term === 'Summer' || term === 'Winter') ? 'brookdale' : 'udel';
+    const school: School = (term === 'Summer' || term === 'Winter') ? 'brookdale' : 'udel';
     semesters.push({
       id: generateId(),
       planId: '',
       term,
       year,
-      school: school as School,
+      school,
       sortOrder: sortOrder++,
       courses: [],
     });
