@@ -90,17 +90,17 @@ function createPastSemesters(): PlanSemester[] {
   const spring26Id = generateId();
 
   return [
-    // Prior transfer credits from Brookdale (before starting UDel)
+    // Prior transfer credits from Brookdale (Summer 2024 → Academic Year 2024-2025)
     {
       id: priorId,
       planId: '',
       term: 'Summer' as Term,
-      year: 2025,
+      year: 2024,
       school: 'brookdale' as School,
       sortOrder: 0,
       courses: priorTransferCourses.map(c => ({ ...c, planSemesterId: priorId })),
     },
-    // Fall 2025 at UDel
+    // Fall 2025 at UDel (Academic Year 2025-2026)
     {
       id: fall25Id,
       planId: '',
@@ -110,7 +110,7 @@ function createPastSemesters(): PlanSemester[] {
       sortOrder: 1,
       courses: fall25Courses.map(c => ({ ...c, planSemesterId: fall25Id })),
     },
-    // Winter 2025 at Brookdale (HIST 105)
+    // Winter 2025 at Brookdale — winter break of Fall 2025 (Academic Year 2025-2026)
     ...(winter25BrookdaleCourses.length > 0 ? [{
       id: winter25BrookdaleId,
       planId: '',
@@ -120,7 +120,7 @@ function createPastSemesters(): PlanSemester[] {
       sortOrder: 2,
       courses: winter25BrookdaleCourses.map(c => ({ ...c, planSemesterId: winter25BrookdaleId })),
     }] : []),
-    // Spring 2026 at UDel
+    // Spring 2026 at UDel (Academic Year 2025-2026)
     {
       id: spring26Id,
       planId: '',
