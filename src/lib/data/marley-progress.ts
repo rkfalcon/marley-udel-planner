@@ -83,13 +83,14 @@ export const COMPLETED_COURSES: CompletedCourse[] = [
     fulfillsRequirements: ['free-elective'],
   },
   // Transfer Credits
+  // Prior transfer credits — taken at Brookdale before starting at UDel
   {
     courseCode: 'ENGL 210',
     title: 'Introduction to Short Story',
     credits: 3,
     grade: 'T',
     status: 'transfer',
-    term: 'Fall',
+    term: 'Summer' as const,
     year: 2025,
     school: 'brookdale',
     fulfillsRequirements: ['breadth-a', 'univ-breadth-creative'],
@@ -100,7 +101,7 @@ export const COMPLETED_COURSES: CompletedCourse[] = [
     credits: 3,
     grade: 'T',
     status: 'transfer',
-    term: 'Fall',
+    term: 'Summer' as const,
     year: 2025,
     school: 'brookdale',
     fulfillsRequirements: ['free-elective'],
@@ -111,7 +112,7 @@ export const COMPLETED_COURSES: CompletedCourse[] = [
     credits: 3,
     grade: 'T',
     status: 'transfer',
-    term: 'Fall',
+    term: 'Summer' as const,
     year: 2025,
     school: 'brookdale',
     fulfillsRequirements: ['free-elective'],
@@ -122,11 +123,12 @@ export const COMPLETED_COURSES: CompletedCourse[] = [
     credits: 3,
     grade: 'T',
     status: 'transfer',
-    term: 'Fall',
+    term: 'Summer' as const,
     year: 2025,
     school: 'brookdale',
     fulfillsRequirements: ['breadth-b'],
   },
+  // HIST 105 — taken at Brookdale during Fall 2025
   {
     courseCode: 'HIST 105',
     title: 'U.S. History to 1865',
