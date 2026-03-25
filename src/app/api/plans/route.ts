@@ -164,9 +164,15 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (existing && action === 'update') {
-    // Updating — verify PIN
-    if (existing.pin_hash && existing.pin_hash !== pin) {
-      return NextResponse.json({ error: 'WRONG_PIN' }, { status: 403 });
+    // Updating — verify PIN (supports both bcrypt-hashed and plain text PINs)
+    if (existing.pin_hash) {
+      const isBcrypt = existing.pin_hash.startsWith('$2');
+      const pinValid = isBcrypt
+        ? await bcrypt.compare(pin || '', existing.pin_hash)
+        : existing.pin_hash === pin;
+      if (!pinValid) {
+        return NextResponse.json({ error: 'WRONG_PIN' }, { status: 403 });
+      }
     }
 
     // Update
