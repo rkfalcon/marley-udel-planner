@@ -244,11 +244,31 @@ export function usePlan() {
 
       const data = await response.json();
 
-      // The API returns the plan with semesters embedded in the description JSON
-      // The top-level fields are merged from the DB row + parsed JSON
-      if (data.semesters) {
+      // If the plan has full semester data, use it directly
+      if (data.semesters && data.semesters.length > 0) {
         setPlan(data as Plan);
         return data as Plan;
+      }
+
+      // Legacy plan (no embedded data) — rebuild from template
+      if (data._legacy || (data.semesters && data.semesters.length === 0)) {
+        const targetGrad = data.targetGraduation || 'Spring 2028';
+        const pastSemesters = createPastSemesters().map(s => ({ ...s, planId: data.id }));
+        const futureSemesters = createFutureSemesters(targetGrad).map(s => ({ ...s, planId: data.id }));
+
+        const rebuiltPlan: Plan = {
+          id: data.id,
+          name: data.name,
+          slug: data.slug,
+          targetGraduation: targetGrad,
+          isEarlyGraduation: data.isEarlyGraduation || false,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+          semesters: sortSemesters([...pastSemesters, ...futureSemesters]),
+        };
+
+        setPlan(rebuiltPlan);
+        return rebuiltPlan;
       }
 
       throw new Error('Plan data is incomplete');
