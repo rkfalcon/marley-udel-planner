@@ -35,25 +35,35 @@ export function SemesterCard({
   const isBrookdale = school === 'brookdale';
   const isBreak = term === 'Summer' || term === 'Winter';
   const totalCredits = courses.reduce((sum, c) => sum + c.credits, 0);
-  const label = formatSemesterLabel(term, year);
+
+  // Special case: prior transfer credits (Summer 2025 Brookdale with all completed/transfer courses)
+  const isPriorTransfer = term === 'Summer' && year === 2025 && isBrookdale && isLocked &&
+    courses.length > 0 && courses.every(c => c.status === 'completed' || c.status === 'transfer');
+
+  const label = isPriorTransfer
+    ? 'Prior Credits'
+    : formatSemesterLabel(term, year);
 
   const cardClasses = cn(
     'w-56 shrink-0 flex flex-col shadow-sm transition-all duration-150',
     {
+      // Prior transfer credits - grey with special styling
+      'bg-gray-50 border-gray-300': isPriorTransfer,
       // UDel semesters - white with blue accent
-      'bg-white border-slate-200 hover:shadow-md': !isBrookdale && !isLocked,
+      'bg-white border-slate-200 hover:shadow-md': !isBrookdale && !isLocked && !isPriorTransfer,
       // Brookdale semesters - subtle green tint
       'bg-emerald-50/60 border-emerald-200 hover:shadow-md':
-        isBrookdale && !isLocked,
-      // Locked semesters
-      'bg-slate-50 border-slate-200 opacity-80': isLocked,
+        isBrookdale && !isLocked && !isPriorTransfer,
+      // Locked semesters (not prior)
+      'bg-slate-50 border-slate-200 opacity-80': isLocked && !isPriorTransfer,
     }
   );
 
   const headerClasses = cn('px-3 pt-3 pb-2 rounded-t-lg', {
-    'bg-blue-600': !isBrookdale && !isLocked,
-    'bg-emerald-600': isBrookdale && !isLocked,
-    'bg-slate-400': isLocked,
+    'bg-gray-500': isPriorTransfer,
+    'bg-blue-600': !isBrookdale && !isLocked && !isPriorTransfer,
+    'bg-emerald-600': isBrookdale && !isLocked && !isPriorTransfer,
+    'bg-slate-400': isLocked && !isPriorTransfer,
   });
 
   return (
