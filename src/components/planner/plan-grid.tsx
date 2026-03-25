@@ -179,7 +179,7 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
                 {/* Year divider */}
                 <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 border-b border-slate-100 sticky left-0">
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-wide whitespace-nowrap">
-                    Academic Year {academicYear}
+                    {academicYear === 'Prior to UDel' ? 'Prior to UDel' : `Academic Year ${academicYear}`}
                   </span>
                   <div className="flex-1 h-px bg-slate-200" />
                   <span className="text-xs text-slate-400 whitespace-nowrap">
