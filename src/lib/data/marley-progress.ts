@@ -128,14 +128,14 @@ export const COMPLETED_COURSES: CompletedCourse[] = [
     school: 'brookdale',
     fulfillsRequirements: ['breadth-b'],
   },
-  // HIST 105 — taken at Brookdale during Fall 2025
+  // HIST 105 — taken at Brookdale during Winter 2025
   {
     courseCode: 'HIST 105',
     title: 'U.S. History to 1865',
     credits: 3,
     grade: 'T',
     status: 'transfer',
-    term: 'Fall',
+    term: 'Winter',
     year: 2025,
     school: 'brookdale',
     fulfillsRequirements: ['breadth-b', 'univ-breadth-history'],
