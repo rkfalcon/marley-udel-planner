@@ -82,8 +82,9 @@ const SEMESTER_PREVIEWS: Record<string, { term: string; year: number; school: st
 };
 
 const PAST_SEMESTERS = [
+  { term: 'Prior Credits', year: 2024, school: 'Brookdale', locked: true },
   { term: 'Fall', year: 2025, school: 'UDel', locked: true },
-  { term: 'Transfer', year: 2025, school: 'Brookdale', locked: true },
+  { term: 'Winter', year: 2025, school: 'Brookdale', locked: true },
   { term: 'Spring', year: 2026, school: 'UDel', locked: true },
 ];
 
