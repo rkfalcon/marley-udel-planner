@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
     }
 
-    // Parse plan data from description field
+    // Parse plan data from description field (stores full plan as JSON)
     let planData = null;
     try {
       planData = data.description ? JSON.parse(data.description) : null;
@@ -33,15 +33,32 @@ export async function GET(request: NextRequest) {
       planData = null;
     }
 
+    if (planData && planData.semesters) {
+      // Full plan data found — return it with DB metadata
+      return NextResponse.json({
+        ...planData,
+        id: data.id,
+        slug: data.slug,
+        name: data.name,
+        targetGraduation: data.target_graduation,
+        isEarlyGraduation: data.is_early_graduation,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      });
+    }
+
+    // Plan exists in DB but has no embedded data (legacy row).
+    // Return basic info so the client can create a fresh plan with this slug.
     return NextResponse.json({
-      ...planData,
       id: data.id,
       slug: data.slug,
       name: data.name,
-      targetGraduation: data.target_graduation,
-      isEarlyGraduation: data.is_early_graduation,
+      targetGraduation: data.target_graduation || 'Spring 2028',
+      isEarlyGraduation: data.is_early_graduation || false,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
+      semesters: [], // Empty — client will need to rebuild
+      _legacy: true, // Signal to client that this needs rebuilding
     });
   }
 
