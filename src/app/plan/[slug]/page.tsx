@@ -253,6 +253,18 @@ export default function PlanEditorPage() {
             )}
           </Button>
 
+          {/* Print button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs font-medium border-slate-200 text-slate-600 hover:text-slate-800"
+            onClick={() => window.open(`/plan/${slug}/print`, '_blank')}
+            title="Print or save plan as PDF"
+          >
+            <Printer className="h-3.5 w-3.5 mr-1.5" />
+            Print
+          </Button>
+
           {/* Save dialog */}
           <Dialog open={saveDialogOpen} onOpenChange={(open) => {
             setSaveDialogOpen(open);
