@@ -54,8 +54,10 @@ export function SemesterCard({
       // Brookdale semesters - subtle green tint
       'bg-emerald-50/60 border-emerald-200 hover:shadow-md':
         isBrookdale && !isLocked && !isPriorTransfer,
-      // Locked semesters (not prior)
-      'bg-slate-50 border-slate-200 opacity-80': isLocked && !isPriorTransfer,
+      // Locked Brookdale semesters — keep green tint
+      'bg-emerald-50/40 border-emerald-200 opacity-90': isBrookdale && isLocked && !isPriorTransfer,
+      // Locked UDel semesters
+      'bg-slate-50 border-slate-200 opacity-80': isLocked && !isBrookdale && !isPriorTransfer,
     }
   );
 
