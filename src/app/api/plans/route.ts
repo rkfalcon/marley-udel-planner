@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
     name: plan.name,
     target_graduation: plan.targetGraduation,
     is_early_graduation: plan.isEarlyGraduation || false,
-    pin_hash: pin || null,
+    pin_hash: pin ? await bcrypt.hash(pin, 10) : null,
     description: JSON.stringify({ ...plan, slug }),
   });
 
