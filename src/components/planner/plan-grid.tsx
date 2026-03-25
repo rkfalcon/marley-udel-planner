@@ -33,6 +33,14 @@ function isSemesterLocked(semester: PlanSemester): boolean {
   return false;
 }
 
+// Order within an academic year: Fall → Winter → Spring → Summer
+const ACADEMIC_YEAR_ORDER: Record<string, number> = {
+  Fall: 0,
+  Winter: 1,
+  Spring: 2,
+  Summer: 3,
+};
+
 function groupByAcademicYear(
   semesters: PlanSemester[]
 ): Map<string, PlanSemester[]> {
@@ -51,6 +59,11 @@ function groupByAcademicYear(
       groups.set(academicYear, []);
     }
     groups.get(academicYear)!.push(semester);
+  }
+
+  // Sort semesters within each academic year: Fall → Winter → Spring → Summer
+  for (const [, sems] of groups) {
+    sems.sort((a, b) => ACADEMIC_YEAR_ORDER[a.term] - ACADEMIC_YEAR_ORDER[b.term]);
   }
 
   return groups;
