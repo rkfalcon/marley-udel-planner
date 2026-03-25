@@ -115,6 +115,8 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
 
   const academicYearGroups = groupByAcademicYear(plan.semesters);
   const sortedYears = Array.from(academicYearGroups.keys()).sort((a, b) => {
+    if (a === 'Prior to UDel') return -1;
+    if (b === 'Prior to UDel') return 1;
     const yearA = parseInt(a.split('–')[0]);
     const yearB = parseInt(b.split('–')[0]);
     return yearA - yearB;
