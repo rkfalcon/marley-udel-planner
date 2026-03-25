@@ -219,7 +219,8 @@ export default function PrintPlanPage() {
             <div className="text-right text-sm text-gray-600">
               <p className="font-semibold text-gray-800">{MARLEY_PROFILE.name}</p>
               <p>ID: {MARLEY_PROFILE.studentId}</p>
-              <p>Generated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+              <p>Plan Created: {new Date(plan.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+              <p>Printed: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
             </div>
           </div>
         </div>
