@@ -47,8 +47,66 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Plan exists in DB but has no embedded data (legacy row).
-    // Return basic info so the client can create a fresh plan with this slug.
+    // Plan exists but no embedded JSON — try to reconstruct from legacy tables
+    try {
+      const { data: semesters } = await supabase
+        .from('plan_semesters')
+        .select('id, term, year, school, sort_order')
+        .eq('plan_id', data.id)
+        .order('sort_order');
+
+      if (semesters && semesters.length > 0) {
+        const semesterIds = semesters.map(s => s.id);
+        const { data: courses } = await supabase
+          .from('plan_courses')
+          .select('id, plan_semester_id, course_code, title, school, credits, status, grade, notes')
+          .in('plan_semester_id', semesterIds);
+
+        const reconstructedPlan = {
+          id: data.id,
+          slug: data.slug,
+          name: data.name,
+          targetGraduation: data.target_graduation || 'Spring 2028',
+          isEarlyGraduation: data.is_early_graduation || false,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+          semesters: semesters.map(sem => ({
+            id: sem.id,
+            planId: data.id,
+            term: sem.term,
+            year: sem.year,
+            school: sem.school,
+            sortOrder: sem.sort_order,
+            courses: (courses || [])
+              .filter(c => c.plan_semester_id === sem.id)
+              .map(c => ({
+                id: c.id,
+                planSemesterId: c.plan_semester_id,
+                courseCode: c.course_code,
+                title: c.title || '',
+                school: c.school,
+                credits: c.credits,
+                status: c.status,
+                grade: c.grade || undefined,
+                notes: c.notes || undefined,
+              })),
+          })),
+        };
+
+        // Backfill: save the reconstructed plan into the description column
+        // so future loads use the fast JSON path
+        await supabase
+          .from('plans')
+          .update({ description: JSON.stringify(reconstructedPlan) })
+          .eq('slug', data.slug);
+
+        return NextResponse.json(reconstructedPlan);
+      }
+    } catch {
+      // Legacy tables don't exist or query failed — fall through
+    }
+
+    // No legacy data either — return skeleton for client to rebuild
     return NextResponse.json({
       id: data.id,
       slug: data.slug,
@@ -57,8 +115,8 @@ export async function GET(request: NextRequest) {
       isEarlyGraduation: data.is_early_graduation || false,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-      semesters: [], // Empty — client will need to rebuild
-      _legacy: true, // Signal to client that this needs rebuilding
+      semesters: [],
+      _legacy: true,
     });
   }
 
