@@ -61,6 +61,14 @@ function formatRelativeDate(isoString: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
+function formatCreatedDate(isoString: string): string {
+  return new Date(isoString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 function PlanCard({
   plan,
   onRename,
