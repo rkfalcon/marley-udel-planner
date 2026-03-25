@@ -141,7 +141,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Credit Progress */}
+        {/* Credit Progress + Requirements Overview */}
         <section>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <Card className="lg:col-span-2 border-slate-100 shadow-sm">
@@ -159,72 +159,23 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="lg:col-span-3 border-slate-100 shadow-sm">
-              <CardHeader className="pb-2 px-6 pt-6">
-                <CardTitle className="text-base font-semibold text-slate-800">
-                  Degree Milestones
-                </CardTitle>
-                <CardDescription className="text-slate-400">
-                  Key checkpoints for {MARLEY_PROFILE.major}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="px-6 pb-6">
-                <div className="space-y-3">
-                  {[
-                    { label: 'First Year Seminar', detail: 'UNIV 101', done: true },
-                    { label: 'First-Year Writing', detail: 'ENGL 110 — Spring 2026', done: false, inProgress: true },
-                    { label: 'Intro to Cognitive Science', detail: 'CGSC 170 — Spring 2026', done: false, inProgress: true },
-                    { label: 'Discovery Learning Experience (DLE)', detail: 'Not yet scheduled', done: false },
-                    { label: 'PPSLP Capstone', detail: 'CGSC 380 — Future', done: false },
-                  ].map((m, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div
-                        className={cn(
-                          'mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0',
-                          m.done
-                            ? 'bg-green-500 border-green-500'
-                            : m.inProgress
-                            ? 'border-amber-400 bg-amber-50'
-                            : 'border-slate-200 bg-white'
-                        )}
-                      >
-                        {m.done && (
-                          <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
-                            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        )}
-                        {m.inProgress && <div className="w-2 h-2 rounded-full bg-amber-400" />}
-                      </div>
-                      <div className="min-w-0">
-                        <p className={cn('text-sm font-medium', m.done ? 'text-slate-500 line-through' : 'text-slate-700')}>
-                          {m.label}
-                        </p>
-                        <p className="text-xs text-slate-400">{m.detail}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="lg:col-span-3 space-y-4">
+              <SectionHeader
+                title="Requirements Overview"
+                description="Progress across all degree requirement categories"
+                action={
+                  <Link
+                    href="/requirements"
+                    className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-slate-500 hover:text-blue-600 -mt-0.5')}
+                  >
+                    View all
+                    <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                  </Link>
+                }
+              />
+              <RequirementsOverview />
+            </div>
           </div>
-        </section>
-
-        {/* Requirements Overview */}
-        <section className="space-y-4">
-          <SectionHeader
-            title="Requirements Overview"
-            description="Progress across all degree requirement categories"
-            action={
-              <Link
-                href="/requirements"
-                className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-slate-500 hover:text-blue-600 -mt-0.5')}
-              >
-                View all
-                <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
-              </Link>
-            }
-          />
-          <RequirementsOverview />
         </section>
 
         {/* Saved Plans */}
