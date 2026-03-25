@@ -59,13 +59,14 @@ export function SemesterCard({
     }
   );
 
-  const headerClasses = cn('px-3 pt-3 pb-2 rounded-t-lg', {
-    'bg-gray-500': isPriorTransfer,
-    'bg-blue-600': !isBrookdale && !isLocked && !isPriorTransfer,
-    'bg-emerald-600': isBrookdale && !isPriorTransfer,
-    'bg-emerald-600/80': isBrookdale && isLocked && !isPriorTransfer,
-    'bg-slate-400': isLocked && !isBrookdale && !isPriorTransfer,
-  });
+  const headerClasses = cn(
+    'px-3 pt-3 pb-2 rounded-t-lg',
+    isPriorTransfer && 'bg-gray-500',
+    !isPriorTransfer && isBrookdale && !isLocked && 'bg-emerald-600',
+    !isPriorTransfer && isBrookdale && isLocked && 'bg-emerald-600/80',
+    !isPriorTransfer && !isBrookdale && !isLocked && 'bg-blue-600',
+    !isPriorTransfer && !isBrookdale && isLocked && 'bg-slate-400',
+  );
 
   return (
     <Card className={cardClasses}>
