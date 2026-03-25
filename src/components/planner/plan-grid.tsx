@@ -47,11 +47,13 @@ function groupByAcademicYear(
   const groups = new Map<string, PlanSemester[]>();
 
   for (const semester of semesters) {
-    // Academic year: Fall/Winter of year N + Spring/Summer of year N+1
+    // Academic year: Fall of year N, then Winter/Spring/Summer of year N+1
+    // Fall 2026 → 2026-2027, Winter 2027 → 2026-2027, Spring 2027 → 2026-2027, Summer 2027 → 2026-2027
     let academicYear: string;
-    if (semester.term === 'Fall' || semester.term === 'Winter') {
+    if (semester.term === 'Fall') {
       academicYear = `${semester.year}–${semester.year + 1}`;
     } else {
+      // Winter, Spring, Summer all belong to the academic year that started the previous Fall
       academicYear = `${semester.year - 1}–${semester.year}`;
     }
 
