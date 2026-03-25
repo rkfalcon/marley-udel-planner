@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, Menu, BookOpen, Calendar, ArrowRightLeft, LayoutDashboard } from "lucide-react";
+import { GraduationCap, Menu, BookOpen, Calendar, ArrowRightLeft, LayoutDashboard, LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button";
 import {
