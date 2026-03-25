@@ -94,9 +94,9 @@ function PlanCard({
           </div>
         </CardHeader>
 
-        <CardContent className="px-4 pb-4 space-y-3">
+        <CardContent className="px-4 pb-4 space-y-2.5">
           <div className="flex items-center gap-1.5 text-sm text-slate-600">
-            <CalendarDays className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <GraduationCap className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <span>Grad: </span>
             <span className="font-medium">{plan.targetGraduation}</span>
             {plan.isEarlyGraduation && (
@@ -104,6 +104,11 @@ function PlanCard({
                 Early
               </Badge>
             )}
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <Calendar className="w-3 h-3 shrink-0" />
+            <span>Created {formatCreatedDate(plan.createdAt)}</span>
           </div>
 
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
