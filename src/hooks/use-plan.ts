@@ -157,7 +157,7 @@ function createFutureSemesters(targetGrad: string): PlanSemester[] {
     }
   }
 
-  let sortOrder = 3;
+  let sortOrder = 4;
   for (const { term, year } of terms) {
     const school = (term === 'Summer' || term === 'Winter') ? 'brookdale' : 'udel';
     semesters.push({
