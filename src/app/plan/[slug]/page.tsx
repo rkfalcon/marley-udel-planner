@@ -229,6 +229,10 @@ export default function PlanEditorPage() {
             <span className="text-[11px] text-slate-400">
               Target: {plan.targetGraduation}
             </span>
+            <span className="text-[11px] text-slate-300">•</span>
+            <span className="text-[11px] text-slate-400">
+              Created {new Date(plan.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </span>
             {plan.isEarlyGraduation && (
               <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-200 border px-1.5 py-0 h-4">
                 Early Grad
