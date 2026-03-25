@@ -40,17 +40,18 @@ const GRADUATION_OPTIONS = [
 ];
 
 // Preview: what semesters will be generated for a given graduation target
+// Winter N = winter break after Fall N (same year label)
 const SEMESTER_PREVIEWS: Record<string, { term: string; year: number; school: string }[]> = {
   'Spring 2027': [
     { term: 'Summer', year: 2026, school: 'Brookdale' },
     { term: 'Fall', year: 2026, school: 'UDel' },
-    { term: 'Winter', year: 2027, school: 'Brookdale' },
+    { term: 'Winter', year: 2026, school: 'Brookdale' },
     { term: 'Spring', year: 2027, school: 'UDel' },
   ],
   'Fall 2027': [
     { term: 'Summer', year: 2026, school: 'Brookdale' },
     { term: 'Fall', year: 2026, school: 'UDel' },
-    { term: 'Winter', year: 2027, school: 'Brookdale' },
+    { term: 'Winter', year: 2026, school: 'Brookdale' },
     { term: 'Spring', year: 2027, school: 'UDel' },
     { term: 'Summer', year: 2027, school: 'Brookdale' },
     { term: 'Fall', year: 2027, school: 'UDel' },
@@ -58,21 +59,22 @@ const SEMESTER_PREVIEWS: Record<string, { term: string; year: number; school: st
   'Spring 2028': [
     { term: 'Summer', year: 2026, school: 'Brookdale' },
     { term: 'Fall', year: 2026, school: 'UDel' },
-    { term: 'Winter', year: 2027, school: 'Brookdale' },
+    { term: 'Winter', year: 2026, school: 'Brookdale' },
     { term: 'Spring', year: 2027, school: 'UDel' },
     { term: 'Summer', year: 2027, school: 'Brookdale' },
     { term: 'Fall', year: 2027, school: 'UDel' },
-    { term: 'Winter', year: 2028, school: 'Brookdale' },
+    { term: 'Winter', year: 2027, school: 'Brookdale' },
     { term: 'Spring', year: 2028, school: 'UDel' },
+    { term: 'Summer', year: 2028, school: 'Brookdale' },
   ],
   'Fall 2028': [
     { term: 'Summer', year: 2026, school: 'Brookdale' },
     { term: 'Fall', year: 2026, school: 'UDel' },
-    { term: 'Winter', year: 2027, school: 'Brookdale' },
+    { term: 'Winter', year: 2026, school: 'Brookdale' },
     { term: 'Spring', year: 2027, school: 'UDel' },
     { term: 'Summer', year: 2027, school: 'Brookdale' },
     { term: 'Fall', year: 2027, school: 'UDel' },
-    { term: 'Winter', year: 2028, school: 'Brookdale' },
+    { term: 'Winter', year: 2027, school: 'Brookdale' },
     { term: 'Spring', year: 2028, school: 'UDel' },
     { term: 'Summer', year: 2028, school: 'Brookdale' },
     { term: 'Fall', year: 2028, school: 'UDel' },
