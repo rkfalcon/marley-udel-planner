@@ -290,8 +290,40 @@ export function usePlan() {
 
       // If the plan has full semester data, use it directly
       if (data.semesters && data.semesters.length > 0) {
-        setPlan(data as Plan);
-        return data as Plan;
+        // Migrate old Winter convention: Winter N (calendar) → Winter N-1 (academic year)
+        // Old: Winter 2027 meant winter break of Fall 2026
+        // New: Winter 2026 means winter break of Fall 2026
+        const migratedPlan = { ...data } as Plan;
+        let needsMigration = false;
+        migratedPlan.semesters = migratedPlan.semesters.map(s => {
+          if (s.term === 'Winter' && s.school === 'brookdale') {
+            // Check if this Winter has the old convention (calendar year)
+            // Old: Winter 2027 in academic year 2026-2027 (should be Winter 2026)
+            // Heuristic: if there's a Fall semester with year = Winter.year - 1, it's old convention
+            const hasPrecedingFall = migratedPlan.semesters.some(
+              f => f.term === 'Fall' && f.year === s.year - 1
+            );
+            const hasMatchingFall = migratedPlan.semesters.some(
+              f => f.term === 'Fall' && f.year === s.year
+            );
+            if (hasPrecedingFall && !hasMatchingFall) {
+              needsMigration = true;
+              return { ...s, year: s.year - 1 };
+            }
+          }
+          // Migrate prior credits: Summer 2025 → Summer 2024
+          if (s.term === 'Summer' && s.year === 2025 && s.school === 'brookdale' &&
+              s.courses.length > 0 && s.courses.every(c => c.status === 'completed' && (c.grade === 'T' || c.grade === 'CR'))) {
+            needsMigration = true;
+            return { ...s, year: 2024 };
+          }
+          return s;
+        });
+        if (needsMigration) {
+          migratedPlan.semesters = sortSemesters(migratedPlan.semesters);
+        }
+        setPlan(migratedPlan);
+        return migratedPlan;
       }
 
       // Legacy plan (no embedded data) — rebuild from template
