@@ -57,9 +57,9 @@ function createPastSemesters(): PlanSemester[] {
       grade: c.grade,
     }));
 
-  // Fall 2025 Brookdale courses (taken concurrently at Brookdale during Fall 2025)
-  const fall25BrookdaleCourses: PlanCourse[] = COMPLETED_COURSES
-    .filter(c => c.status === 'transfer' && c.term === 'Fall' && c.year === 2025 && c.school === 'brookdale')
+  // Winter 2025 Brookdale courses (HIST 105 taken at Brookdale)
+  const winter25BrookdaleCourses: PlanCourse[] = COMPLETED_COURSES
+    .filter(c => c.status === 'transfer' && c.term === 'Winter' && c.year === 2025 && c.school === 'brookdale')
     .map(c => ({
       id: generateId(),
       planSemesterId: '',
