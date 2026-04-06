@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
 
+// Force Node.js runtime (bcryptjs requires it)
+export const runtime = 'nodejs';
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
