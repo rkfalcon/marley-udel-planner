@@ -220,6 +220,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
   return NextResponse.json({ slug, action: 'created' });
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
 
 // DELETE /api/plans?slug=xxx
