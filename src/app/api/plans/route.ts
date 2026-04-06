@@ -150,6 +150,7 @@ export async function GET(request: NextRequest) {
 // POST /api/plans
 // Body: { plan, pin, action: 'create' | 'update' | 'save_as_new' }
 export async function POST(request: NextRequest) {
+  try {
   const body = await request.json();
   const { plan, pin, action = 'create' } = body;
 
