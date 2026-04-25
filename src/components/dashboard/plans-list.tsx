@@ -237,6 +237,74 @@ export function PlansList() {
     setDialogMode('delete');
   };
 
+  const openDuplicate = (plan: PlanSummary) => {
+    setSelectedPlan(plan);
+    setNewName(`${plan.name} (Copy)`);
+    setPin('');
+    setPinError('');
+    setDialogMode('duplicate');
+  };
+
+  function generateSlug(name: string): string {
+    const base = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 60);
+    const suffix = Math.random().toString(36).substring(2, 6);
+    return `${base || 'plan'}-${suffix}`;
+  }
+
+  const handleDuplicate = async () => {
+    if (!selectedPlan || !newName.trim()) return;
+    if (!pin || pin.length < 4) {
+      setPinError('Please enter a PIN of at least 4 characters for the new plan.');
+      return;
+    }
+    setActionLoading(true);
+    setPinError('');
+
+    try {
+      // 1. Fetch the full source plan data
+      const fetchRes = await fetch(`/api/plans?slug=${encodeURIComponent(selectedPlan.slug)}`);
+      if (!fetchRes.ok) {
+        throw new Error('Could not load source plan');
+      }
+      const sourcePlan = await fetchRes.json();
+
+      // 2. Build a new plan with a fresh slug, new name, and reset timestamps
+      const newSlug = generateSlug(newName.trim());
+      const now = new Date().toISOString();
+      const duplicatedPlan = {
+        ...sourcePlan,
+        id: crypto.randomUUID(),
+        slug: newSlug,
+        name: newName.trim(),
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      // 3. Create the new plan in the database
+      const createRes = await fetch('/api/plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: duplicatedPlan, pin, action: 'create' }),
+      });
+      const data = await createRes.json();
+
+      if (!createRes.ok) {
+        throw new Error(data.error || 'Failed to duplicate plan');
+      }
+
+      // 4. Navigate to the newly created plan
+      setDialogMode(null);
+      router.push(`/plan/${data.slug || newSlug}`);
+    } catch (err) {
+      setPinError(err instanceof Error ? err.message : 'Failed to duplicate');
+      setActionLoading(false);
+    }
+  };
+
   const handleRename = async () => {
     if (!selectedPlan || !newName.trim()) return;
     setActionLoading(true);
