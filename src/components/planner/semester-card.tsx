@@ -130,6 +130,7 @@ export function SemesterCard({
                 status={course.status}
                 school={course.school}
                 grade={course.grade}
+                fulfillsRequirements={course.fulfillsRequirements}
                 onRemove={
                   !isLocked && course.status === 'planned'
                     ? () => onRemoveCourse(semester.id, course.id)
