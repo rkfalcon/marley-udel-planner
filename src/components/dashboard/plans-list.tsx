@@ -201,12 +201,13 @@ export function PlansList() {
   const [loading, setLoading] = useState(true);
 
   // Dialog state
-  const [dialogMode, setDialogMode] = useState<'rename' | 'delete' | null>(null);
+  const [dialogMode, setDialogMode] = useState<'rename' | 'delete' | 'duplicate' | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanSummary | null>(null);
   const [pin, setPin] = useState('');
   const [newName, setNewName] = useState('');
   const [pinError, setPinError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [router] = useState(() => ({ push: (url: string) => { window.location.href = url; } }));
 
   useEffect(() => {
     let cancelled = false;
