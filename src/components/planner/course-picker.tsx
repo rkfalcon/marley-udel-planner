@@ -737,13 +737,13 @@ function PlaceholderElectiveEntry({
 
   const handleAdd = () => {
     const cr = parseInt(credits) || 3;
-    const displayLabel = label.trim() || `Elective ${placeholderCount}`;
     placeholderCount++;
     onAdd({
       id: `placeholder-${Date.now()}`,
       school: 'udel',
       courseCode: `ELEC ${placeholderCount}`,
-      title: displayLabel,
+      // Empty title signals "no label" — chip falls back to "ELECTIVE"
+      title: label.trim(),
       credits: cr,
     });
     setLabel('');
