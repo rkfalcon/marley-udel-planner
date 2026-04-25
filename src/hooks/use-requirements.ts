@@ -78,9 +78,12 @@ function getRequirementStatus(
       })
       .reduce((sum, c) => sum + c.credits, 0);
 
-    // Also count planned course credits for credit-based reqs
+    // Also count planned course credits for credit-based reqs (including manual cross-listed overrides)
     const creditsPlanned = plannedCourses
-      .filter(c => req.courseOptions?.includes(c.courseCode))
+      .filter(c =>
+        req.courseOptions?.includes(c.courseCode) ||
+        c.fulfillsRequirements?.includes(req.id)
+      )
       .reduce((sum, c) => sum + c.credits, 0);
 
     if (creditsEarned >= req.creditsRequired) {
