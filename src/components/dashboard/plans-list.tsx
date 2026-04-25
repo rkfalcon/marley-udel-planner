@@ -35,6 +35,7 @@ import {
   Plus,
   GraduationCap,
   AlertCircle,
+  Copy,
 } from 'lucide-react';
 
 interface PlanSummary {
