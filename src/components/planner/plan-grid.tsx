@@ -102,6 +102,7 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
       school: course.school,
       credits: course.credits,
       status: 'planned',
+      fulfillsRequirements: course.fulfillsRequirements,
     });
   };
 
