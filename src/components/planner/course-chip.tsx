@@ -70,10 +70,17 @@ export function CourseChip({
   );
 
   return (
-    <div className={containerClasses} title={title}>
+    <div className={containerClasses} title={tooltipTitle}>
       <span className="truncate max-w-[120px] leading-none">{displayCode}</span>
 
       <span className={creditsBadgeClasses}>{credits}cr</span>
+
+      {hasManualReq && (
+        <Link2
+          className="h-2.5 w-2.5 shrink-0 opacity-70"
+          aria-label={`Fulfills ${fulfilledReqNames}`}
+        />
+      )}
 
       {grade && (
         <span
