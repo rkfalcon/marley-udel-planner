@@ -29,7 +29,10 @@ export function CourseChip({
 }: CourseChipProps) {
   const isRemovable = onRemove && status === 'planned';
   const isPlaceholder = courseCode.startsWith('ELEC');
-  const displayCode = isPlaceholder ? 'ELECTIVE' : courseCode;
+  // For placeholders: show the user-entered label if present; else fall back to "ELECTIVE"
+  const displayCode = isPlaceholder
+    ? (title && title.trim() ? title : 'ELECTIVE')
+    : courseCode;
   const hasManualReq = fulfillsRequirements && fulfillsRequirements.length > 0;
   const fulfilledReqNames = hasManualReq
     ? fulfillsRequirements!
