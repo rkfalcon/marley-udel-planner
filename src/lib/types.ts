@@ -23,6 +23,7 @@ export interface Course {
   attributes?: string[];
   prerequisites?: string;
   typicallyOffered?: string;
+  fulfillsRequirements?: string[]; // requirement IDs this course manually fulfills (for cross-listed courses)
 }
 
 export interface TransferMapping {
