@@ -100,7 +100,9 @@ function getRequirementStatus(
       const udelEquiv = getUdelEquivalent(course.courseCode, course.school);
       const matchesOption = req.courseOptions?.includes(course.courseCode) || req.courseOptions?.includes(udelEquiv);
       const matchesSW = req.id === 'second-writing' && (secondWritingSet.has(course.courseCode) || secondWritingSet.has(udelEquiv));
-      if (matchesOption || matchesSW) {
+      // Manual override: course was explicitly marked as fulfilling this requirement (e.g. cross-listed courses)
+      const matchesManual = course.fulfillsRequirements?.includes(req.id);
+      if (matchesOption || matchesSW || matchesManual) {
         if (status === 'not_started') {
           status = 'in_progress'; // planned course counts as "in progress" toward fulfillment
         }
