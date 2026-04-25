@@ -441,6 +441,68 @@ export function PlansList() {
         </DialogContent>
       </Dialog>
 
+      {/* Duplicate Dialog */}
+      <Dialog open={dialogMode === 'duplicate'} onOpenChange={(open) => { if (!open) setDialogMode(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <Copy className="h-5 w-5 text-blue-600" />
+              Duplicate Plan
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="p-3 rounded-lg bg-blue-50 border border-blue-100">
+              <p className="text-sm text-blue-700">
+                Creating a copy of <strong>{selectedPlan?.name}</strong>. The new plan will
+                have its own URL and PIN, and the original will be unchanged.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">New Plan Name</Label>
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Enter a name for the duplicated plan"
+                className="border-slate-200"
+                onKeyDown={(e) => e.key === 'Enter' && handleDuplicate()}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">New Plan PIN</Label>
+              <Input
+                type="password"
+                value={pin}
+                onChange={(e) => { setPin(e.target.value); setPinError(''); }}
+                placeholder="Set a PIN for the new plan (min. 4 chars)"
+                className={cn('border-slate-200', pinError && 'border-red-300')}
+                onKeyDown={(e) => e.key === 'Enter' && handleDuplicate()}
+              />
+              {pinError && <p className="text-xs text-red-500">{pinError}</p>}
+              <p className="text-xs text-slate-400">
+                You&apos;ll need this PIN to edit or delete the duplicated plan later.
+              </p>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setDialogMode(null)}
+                disabled={actionLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                onClick={handleDuplicate}
+                disabled={actionLoading || !newName.trim() || !pin}
+              >
+                {actionLoading ? 'Duplicating...' : 'Create Copy'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Dialog */}
       <Dialog open={dialogMode === 'delete'} onOpenChange={(open) => { if (!open) setDialogMode(null); }}>
         <DialogContent className="sm:max-w-md">
