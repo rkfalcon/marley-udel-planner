@@ -136,6 +136,13 @@ function PlanCard({
               Rename
             </DropdownMenuItem>
             <DropdownMenuItem
+              onClick={(e) => { e.preventDefault(); onDuplicate(plan); }}
+              className="cursor-pointer"
+            >
+              <Copy className="h-3.5 w-3.5 mr-2" />
+              Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={(e) => { e.preventDefault(); onDelete(plan); }}
               className="cursor-pointer text-red-600 focus:text-red-600"
             >
