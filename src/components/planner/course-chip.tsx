@@ -1,9 +1,10 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { X, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { CourseStatus, School } from '@/lib/types';
+import { REQUIREMENTS } from '@/lib/data/requirements';
 
 interface CourseChipProps {
   courseCode: string;
@@ -12,6 +13,7 @@ interface CourseChipProps {
   status: CourseStatus;
   school: School;
   grade?: string;
+  fulfillsRequirements?: string[];
   onRemove?: () => void;
 }
 
