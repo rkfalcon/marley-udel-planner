@@ -94,6 +94,7 @@ export interface PlanCourse {
   status: CourseStatus;
   grade?: string;
   fulfillsRequirementId?: string;
+  fulfillsRequirements?: string[]; // requirement IDs this course manually fulfills (for cross-listed courses)
   notes?: string;
 }
 
