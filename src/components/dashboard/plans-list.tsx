@@ -74,10 +74,12 @@ function PlanCard({
   plan,
   onRename,
   onDelete,
+  onDuplicate,
 }: {
   plan: PlanSummary;
   onRename: (plan: PlanSummary) => void;
   onDelete: (plan: PlanSummary) => void;
+  onDuplicate: (plan: PlanSummary) => void;
 }) {
   return (
     <Card className="h-full transition-all duration-200 border-slate-100 hover:border-blue-200 hover:shadow-md group relative">
