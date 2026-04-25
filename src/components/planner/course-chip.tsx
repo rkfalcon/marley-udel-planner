@@ -24,11 +24,22 @@ export function CourseChip({
   status,
   school,
   grade,
+  fulfillsRequirements,
   onRemove,
 }: CourseChipProps) {
   const isRemovable = onRemove && status === 'planned';
   const isPlaceholder = courseCode.startsWith('ELEC');
   const displayCode = isPlaceholder ? 'ELECTIVE' : courseCode;
+  const hasManualReq = fulfillsRequirements && fulfillsRequirements.length > 0;
+  const fulfilledReqNames = hasManualReq
+    ? fulfillsRequirements!
+        .map(id => REQUIREMENTS.find(r => r.id === id)?.name)
+        .filter(Boolean)
+        .join(', ')
+    : '';
+  const tooltipTitle = hasManualReq
+    ? `${title}\nFulfills: ${fulfilledReqNames}`
+    : title;
 
   const containerClasses = cn(
     'group flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium border transition-all duration-150',
