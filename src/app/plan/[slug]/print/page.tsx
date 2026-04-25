@@ -311,10 +311,14 @@ export default function PrintPlanPage() {
                             : findRequirementsFulfilled(course.courseCode, course.school);
                           const transferInfo = isBrookdale ? getTransferInfo(course.courseCode) : null;
 
+                          // For placeholders: show user-entered label if present; else "ELECTIVE"
+                          const placeholderLabel = course.title && course.title.trim()
+                            ? course.title
+                            : 'ELECTIVE';
                           return (
                             <tr key={course.id} className="border-b border-gray-100">
                               <td className="py-1.5 pr-2 font-mono text-xs font-semibold text-gray-800">
-                                {isElecPlaceholder ? 'ELECTIVE' : course.courseCode}
+                                {isElecPlaceholder ? placeholderLabel : course.courseCode}
                               </td>
                               <td className="py-1.5 pr-2 text-gray-700">
                                 <div>{course.title || (isElecPlaceholder ? 'Elective Placeholder' : '')}</div>
