@@ -601,6 +601,21 @@ function CustomCourseEntry({
   const [code, setCode] = useState('');
   const [title, setTitle] = useState('');
   const [credits, setCredits] = useState('3');
+  const [requirementId, setRequirementId] = useState<string>(''); // empty = "free elective"
+
+  // Build grouped requirement options for the select
+  const requirementOptions = useMemo(() => {
+    const options: { value: string; label: string; group: string }[] = [];
+    for (const group of REQUIREMENT_GROUPS) {
+      const reqs = REQUIREMENTS
+        .filter(r => r.category === group.category && r.id !== 'free-elective')
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+      for (const req of reqs) {
+        options.push({ value: req.id, label: req.name, group: group.label });
+      }
+    }
+    return options;
+  }, []);
 
   const handleAdd = () => {
     if (!code.trim() || !title.trim()) return;
@@ -610,10 +625,12 @@ function CustomCourseEntry({
       courseCode: code.trim().toUpperCase(),
       title: title.trim(),
       credits: parseInt(credits) || 3,
+      fulfillsRequirements: requirementId ? [requirementId] : undefined,
     });
     setCode('');
     setTitle('');
     setCredits('3');
+    setRequirementId('');
   };
 
   return (
@@ -660,6 +677,35 @@ function CustomCourseEntry({
             className="h-8 text-xs"
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
           />
+
+          {/* Requirement dropdown — for cross-listed courses */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-semibold text-slate-600 block">
+              Fulfills requirement (optional)
+            </label>
+            <select
+              value={requirementId}
+              onChange={(e) => setRequirementId(e.target.value)}
+              className="w-full h-8 text-xs rounded-md border border-slate-200 bg-white px-2 focus:border-blue-300 focus:outline-none"
+            >
+              <option value="">— Free elective (no specific requirement) —</option>
+              {REQUIREMENT_GROUPS.map((group) => {
+                const groupOptions = requirementOptions.filter(o => o.group === group.label);
+                if (groupOptions.length === 0) return null;
+                return (
+                  <optgroup key={group.label} label={group.label}>
+                    {groupOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </optgroup>
+                );
+              })}
+            </select>
+            <p className="text-[10px] text-slate-400 leading-tight">
+              Use this for cross-listed courses (e.g. CGSC 353 cross-listed with LING 353).
+            </p>
+          </div>
+
           <button
             onClick={handleAdd}
             disabled={!code.trim() || !title.trim()}
