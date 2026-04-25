@@ -201,6 +201,8 @@ export function PlansList() {
   const [plans, setPlans] = useState<PlanSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const router = useRouter();
+
   // Dialog state
   const [dialogMode, setDialogMode] = useState<'rename' | 'delete' | 'duplicate' | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanSummary | null>(null);
@@ -208,7 +210,6 @@ export function PlansList() {
   const [newName, setNewName] = useState('');
   const [pinError, setPinError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
-  const [router] = useState(() => ({ push: (url: string) => { window.location.href = url; } }));
 
   useEffect(() => {
     let cancelled = false;
