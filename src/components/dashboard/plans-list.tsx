@@ -385,7 +385,7 @@ export function PlansList() {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {plans.map((plan) => (
-          <PlanCard key={plan.id} plan={plan} onRename={openRename} onDelete={openDelete} />
+          <PlanCard key={plan.id} plan={plan} onRename={openRename} onDelete={openDelete} onDuplicate={openDuplicate} />
         ))}
         <CreateNewPlanCard />
       </div>
