@@ -2,7 +2,7 @@
 
 ## Deployed behavior
 
-Vercel calls `/api/cron/catalog-sync` every ten minutes, authenticated with `CRON_SECRET`. The existing Vercel team is on Pro, which supports this schedule. No browser launches when a check is not due or is paused. The worker starts a new full check every seven days; incomplete or failed checks resume on the next ten-minute tick. An optional Admin Check now action uses the same worker. No desktop or open browser is required.
+Vercel calls `/api/cron/catalog-sync` every ten minutes, authenticated with `CRON_SECRET`. The existing Vercel team is on Pro, which supports this schedule. No browser launches when a check is not due or is paused. The worker starts a new full check every calendar month; incomplete or failed checks resume on the next ten-minute tick. An optional Admin Check now action uses the same worker. No desktop or open browser is required.
 
 The worker discovers the current undergraduate catalog from UDel's homepage, walks all course listing pages, verifies every course, and checks that all listed prefixes are present. Course identity, credit range, catalog year, duplicate codes, source origin, size, and large unexpected removals are checked before publication. Work checkpoints are resumable, with an expiring database lease to prevent overlapping workers from publishing stale results.
 
@@ -26,7 +26,7 @@ The browser packages and Chromium binaries are explicitly included in the two wo
 
 A course whose official entry omits credits is imported with `creditsUnspecified`; the numeric zero is only a placeholder, and Admin and Plan Builder require enrolled credits before adding it. Explicit zero-credit courses remain distinct.
 
-Production publication succeeded on September 14, 2026 at 22:08:38 UTC: **5,200 courses across all 121 advertised subject prefixes**, including all 17 DIST courses and 48 CGSC courses. Snapshot: `30ce2b48-b580-43dc-9e44-0d40fbf7a3e6`. All eleven public API pages were fetched and verified to contain exactly 5,200 unique course codes from that same immutable snapshot. Both requirement documents were checked successfully; the error fields and worker lease are clear. The next full check is due September 21, 2026. A repeat authenticated cron call returns `not_due`.
+Production publication succeeded on September 14, 2026 at 22:08:38 UTC: **5,200 courses across all 121 advertised subject prefixes**, including all 17 DIST courses and 48 CGSC courses. Snapshot: `30ce2b48-b580-43dc-9e44-0d40fbf7a3e6`. All eleven public API pages were fetched and verified to contain exactly 5,200 unique course codes from that same immutable snapshot. Both requirement documents were checked successfully; the error fields and worker lease are clear. The next full check is due October 14, 2026. A repeat authenticated cron call returns `not_due`.
 
 Two official entries do not provide numeric credits: GBUS 364 omits the field, and HDFS 278 puts “Group Dynamics” in it. Both remain searchable and require enrolled credits when added. The importer does not infer credits from the unrelated Allowed Units field. Publication stops if more than 5% of courses have unspecified credits, guarding against a broad source-format/parser regression.
 
@@ -34,6 +34,8 @@ The ten-minute production scheduler was observed resuming the import without a d
 
 ## Verification
 
-49 tests pass, including source parsing, empty/incomplete departments, duplicate identities, credit ranges, interrupted runs, resume, one complete publication, weekly due dates, source challenges preserving the active version, pause, overlapping workers, authenticated control routes, paginated immutable versions, and rollback. Existing academic record and plan reconciliation tests remain passing. Next.js production build passes. Existing lint has 13 unused-symbol warnings and no errors. Supabase advisors reported no findings for the added tables or function; existing unrelated warnings concern set_updated_at's search path and Auth leaked-password protection.
+50 tests pass, including source parsing, empty/incomplete departments, duplicate identities, credit ranges, interrupted runs, resume, one complete publication, monthly due dates, source challenges preserving the active version, pause, overlapping workers, authenticated control routes, paginated immutable versions, and rollback. Existing academic record and plan reconciliation tests remain passing. Next.js production build passes. Existing lint has 13 unused-symbol warnings and no errors. Supabase advisors reported no findings for the added tables or function; existing unrelated warnings concern set_updated_at's search path and Auth leaked-password protection.
 
 Browser QA used an isolated local database fixture to verify the failure/status panel, scheduler configuration indicator, progress fields, and unchanged academic editor. Live API verification confirmed the source-blocked status in the production database and public catalog fallback.
+
+The monthly interval was requested on September 14, 2026. Existing weekly due dates are recalculated from the last successful publication; short months clamp to their last day. Unfinished imports retain ten-minute retries.

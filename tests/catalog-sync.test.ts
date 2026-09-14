@@ -173,7 +173,7 @@ test("worker resumes, publishes atomically, preserves good data on source failur
         assert.equal(state.job, undefined);
       },
     );
-    await t.test("weekly due date avoids unnecessary imports", async () => {
+    await t.test("monthly due date avoids unnecessary imports", async () => {
       assert.equal((await syncCatalog()).status, "not_due");
       assert.equal(versions.length, 1);
     });
@@ -347,5 +347,32 @@ test("catalog omissions are distinct from zero credits and malformed credit valu
         prefixes,
       ),
     /Too many/,
+  );
+});
+
+test("monthly schedule migrates weekly dates and handles short months", async () => {
+  const { nextMonthlyCheck } = await import("../src/lib/catalog/schedule");
+  const { shouldCheck } = await import("../src/lib/catalog/sync");
+  assert.equal(
+    nextMonthlyCheck("2026-09-14T22:08:38.778Z"),
+    "2026-10-14T22:08:38.778Z",
+  );
+  assert.equal(
+    nextMonthlyCheck("2026-01-31T12:00:00.000Z"),
+    "2026-02-28T12:00:00.000Z",
+  );
+  assert.equal(
+    nextMonthlyCheck("2028-01-31T12:00:00.000Z"),
+    "2028-02-29T12:00:00.000Z",
+  );
+  const state = {
+    lastSuccess: "2026-09-14T22:08:38.778Z",
+    nextCheck: "2026-09-21T22:08:38.778Z",
+  };
+  assert.equal(shouldCheck(state, Date.parse("2026-09-22")), false);
+  assert.equal(shouldCheck(state, Date.parse("2026-10-15")), true);
+  assert.equal(
+    shouldCheck({ ...state, error: "retry" }, Date.parse("2026-09-22")),
+    true,
   );
 });

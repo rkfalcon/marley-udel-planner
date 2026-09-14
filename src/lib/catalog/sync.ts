@@ -11,20 +11,23 @@ import {
   validateCatalog,
 } from "./source";
 import type { CatalogState, SourceDocument } from "./types";
-const WEEK = 7 * 24 * 60 * 60 * 1000;
+import { nextMonthlyCheck } from "./schedule";
 export function shouldCheck(
   state: CatalogState,
   now = Date.now(),
   force = false,
 ) {
+  const nextCheck = state.lastSuccess
+    ? nextMonthlyCheck(state.lastSuccess)
+    : state.nextCheck;
   return (
     !state.paused &&
     (force ||
       !!state.error ||
       !!state.requirementsError ||
       !!state.job ||
-      !state.nextCheck ||
-      Date.parse(state.nextCheck) <= now)
+      !nextCheck ||
+      Date.parse(nextCheck) <= now)
   );
 }
 async function checkRequirements(
@@ -75,6 +78,9 @@ export async function syncCatalog(
   const { token, state } = lease;
   const deadline = Date.now() + budgetMs;
   try {
+    // Migrate an existing weekly due date without launching a fresh import.
+    if (state.lastSuccess)
+      state.nextCheck = nextMonthlyCheck(state.lastSuccess);
     if (!shouldCheck(state, Date.now(), force)) {
       await saveState(state, token, true);
       return { status: state.paused ? "paused" : "not_due" };
@@ -98,7 +104,8 @@ export async function syncCatalog(
     }
     if (
       !state.requirements ||
-      Date.now() - Date.parse(state.requirements.checkedAt) >= WEEK ||
+      Date.now() >=
+        Date.parse(nextMonthlyCheck(state.requirements.checkedAt)) ||
       force
     ) {
       try {
@@ -243,7 +250,7 @@ export async function syncCatalog(
     state.courseCount = job.courses.length;
     state.departmentCount = job.prefixes.length;
     state.lastSuccess = new Date().toISOString();
-    state.nextCheck = new Date(Date.now() + WEEK).toISOString();
+    state.nextCheck = nextMonthlyCheck(state.lastSuccess);
     delete state.job;
     await saveState(state, token, true);
     return { status: "published", courses: state.courseCount };

@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { nextMonthlyCheck } from "@/lib/catalog/schedule";
 import type { CatalogState } from "@/lib/catalog/types";
 import { Button } from "@/components/ui/button";
 type Status = Omit<CatalogState, "job"> & {
@@ -63,9 +64,9 @@ export function CatalogStatus() {
     >
       <h2 className="text-lg font-semibold">Automatic catalog updates</h2>
       <p className="text-sm text-slate-600">
-        Checks for a complete undergraduate catalog weekly. Unfinished checks
-        resume automatically every ten minutes. Assigned degree requirements stay on the reviewed 2026–2027
-        planning catalog.
+        Checks for a complete undergraduate catalog monthly. Unfinished checks
+        resume automatically every ten minutes. Assigned degree requirements
+        stay on the reviewed 2026–2027 planning catalog.
       </p>
       {status && (
         <>
@@ -76,7 +77,9 @@ export function CatalogStatus() {
                   status.requirementsError ||
                   status.requirements?.changed ||
                   (status.lastSuccess &&
-                    Date.now() - Date.parse(status.lastSuccess) > 9 * 86400000)
+                    Date.now() >
+                      Date.parse(nextMonthlyCheck(status.lastSuccess)) +
+                        2 * 86400000)
                 ? "Needs attention — automatic retries enabled"
                 : status.job
                   ? "Import in progress"
