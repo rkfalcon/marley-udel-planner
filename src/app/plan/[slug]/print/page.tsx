@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { MARLEY_PROFILE } from '@/lib/data/marley-progress';
 import { REQUIREMENTS } from '@/lib/data/requirements';
 import { TRANSFER_MAPPINGS } from '@/lib/data/transfer-mappings';
+import { AcceleratedSlp } from '@/components/planner/accelerated-slp';
 import { usePlan } from '@/hooks/use-plan';
 import { evaluateRequirements, matchesRequirement } from '@/lib/requirement-evaluation';
 import { PlanSemester, PlanCourse } from '@/lib/types';
@@ -117,6 +118,7 @@ export default function PrintPlanPage() {
 
   return (
     <>
+      <AcceleratedSlp plan={plan} />
       {/* Print-specific styles */}
       <style jsx global>{`
         @media print {

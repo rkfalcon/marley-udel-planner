@@ -66,6 +66,7 @@ export interface CompletedCourse {
 }
 
 export interface Plan {
+  acceleratedSlp?: import("./accelerated-slp").AcceleratedSlpSettings;
   id: string;
   name: string;
   description?: string;

@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { AcceleratedSlp } from '@/components/planner/accelerated-slp';
 import { PlanGrid } from '@/components/planner/plan-grid';
 import { GraduationTracker } from '@/components/planner/graduation-tracker';
 import { usePlan } from '@/hooks/use-plan';
@@ -453,6 +454,7 @@ export default function PlanEditorPage() {
         </div>
       </header>
 
+      <AcceleratedSlp plan={plan} onChange={acceleratedSlp => setPlan({...plan, acceleratedSlp, updatedAt: new Date().toISOString()})} />
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Plan grid area */}

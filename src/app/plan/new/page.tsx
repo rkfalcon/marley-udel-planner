@@ -92,6 +92,8 @@ export default function NewPlanPage() {
   const router = useRouter();
   const { createPlan, loading } = usePlan();
 
+  const [accelerated, setAccelerated] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
   const [targetGraduation, setTargetGraduation] = useState('Spring 2028');
   const [isEarlyGraduation, setIsEarlyGraduation] = useState(false);
@@ -104,20 +106,25 @@ export default function NewPlanPage() {
       setError('Please enter a plan name');
       return;
     }
+    if (creating) return;
     setError('');
+    setCreating(true);
 
     const plan = createPlan(name.trim(), targetGraduation, isEarlyGraduation);
+    if (accelerated) plan.acceleratedSlp = { entryYear: 2025 };
     // Save to database immediately so the plan page can load it
     try {
-      await fetch('/api/plans', {
+      const response = await fetch('/api/plans', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan, action: 'create' }),
       });
+      if (!response.ok) throw new Error('Unable to save the plan. Please try again.');
+      router.push(`/plan/${plan.slug}`);
     } catch {
-      // If save fails, the plan page will show not found — but proceed anyway
+      setError('Unable to save the plan. Please try again.');
+      setCreating(false);
     }
-    router.push(`/plan/${plan.slug}`);
   };
 
   return (
@@ -146,6 +153,10 @@ export default function NewPlanPage() {
           </CardHeader>
 
           <CardContent className="space-y-6">
+            <label className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <input type="checkbox" className="mt-1" checked={accelerated} onChange={e => {setAccelerated(e.target.checked); if(e.target.checked){setTargetGraduation('Spring 2028');setIsEarlyGraduation(true);if(!name)setName('Marley 3+2 SLP Pathway');}}} />
+              <span><strong className="block">3+2 accelerated SLP pathway (BS → MA)</strong><span className="text-sm">Track 109 credits and major completion by Spring 2028, GPA requirements and application milestones. Based on a Fall 2025 start; editable in the plan.</span></span>
+            </label>
             {/* Plan name */}
             <div className="space-y-2">
               <Label htmlFor="plan-name" className="text-sm font-semibold text-slate-700">
@@ -319,7 +330,7 @@ export default function NewPlanPage() {
             {/* Submit */}
             <Button
               onClick={handleCreate}
-              disabled={loading || !name.trim()}
+              disabled={loading || creating || !name.trim()}
               className="w-full h-11 text-sm font-semibold bg-blue-600 hover:bg-blue-700 shadow-sm"
             >
               {loading ? (
