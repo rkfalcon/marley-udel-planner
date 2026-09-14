@@ -140,3 +140,28 @@ test("second writing retains courses listed without catalog hyperlinks", async (
     assert.ok(SECOND_WRITING_ALL_CODES.includes(code));
   assert.equal(SECOND_WRITING_ALL_CODES.includes("COMM 311"), false);
 });
+
+test("Disability Studies is searchable with verified credits and requirement matches", async () => {
+  const { searchCourses } = await import("../src/lib/data/courses");
+  const matches = searchCourses("DIS", "udel").filter((c) =>
+    c.courseCode.startsWith("DIST "),
+  );
+  assert.equal(matches.length, 17);
+  assert.equal(matches.find((c) => c.courseCode === "DIST 150")?.credits, 0);
+  assert.equal(matches.find((c) => c.courseCode === "DIST 250")?.credits, 3);
+  assert.ok(
+    suggestedRequirements(course("DIST 250")).includes("univ-breadth-history"),
+  );
+  assert.ok(
+    suggestedRequirements(course("DIST 250")).includes("multicultural"),
+  );
+  assert.equal(result([course("DIST 345")], "dle").status, "completed");
+  assert.equal(
+    result([course("DIST 200", 1)], "dle").projectedFulfilled,
+    false,
+  );
+  assert.equal(
+    result([course("DIST 250")], "ppslp-cgsc350").status,
+    "not_started",
+  );
+});

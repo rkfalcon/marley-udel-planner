@@ -38,6 +38,9 @@ export const REQUIREMENTS: Requirement[] = [
       "UNIV 372",
       "UNIV 373",
       // CGSC / SLP-relevant DLE options
+      "DIST 200",
+      "DIST 345",
+      "DIST 400",
       "CGSC 310",
       "CGSC 353",
       "LING 353",
@@ -65,7 +68,7 @@ export const REQUIREMENTS: Requirement[] = [
     creditsRequired: 3,
     fulfillmentType: "any",
     sortOrder: 4,
-    courseOptions: ["LING 101"],
+    courseOptions: ["LING 101", "DIST 250"],
   },
   {
     id: "univ-breadth-creative",
@@ -85,7 +88,7 @@ export const REQUIREMENTS: Requirement[] = [
     creditsRequired: 3,
     fulfillmentType: "any",
     sortOrder: 6,
-    courseOptions: ["HIST 105", "HIST 225"],
+    courseOptions: ["HIST 105", "HIST 225", "DIST 250"],
   },
   {
     id: "univ-breadth-social",

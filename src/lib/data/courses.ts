@@ -1,5 +1,6 @@
 import { Course } from "../types";
 import { SECOND_WRITING_COURSES } from "./second-writing-courses";
+import { DIST_CATALOG } from "./dist-catalog-2026";
 import { CGSC_CATALOG } from "./cgsc-catalog-2026";
 
 // Courses relevant to Marley's degree requirements
@@ -643,6 +644,7 @@ const OTHER_COURSES: Course[] = [
 const BASE_COURSES: Course[] = [
   ...OTHER_COURSES,
   ...CGSC_CATALOG,
+  ...DIST_CATALOG,
   {
     id: "catalog97-nsci100",
     school: "udel",
