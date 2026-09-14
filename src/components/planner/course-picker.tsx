@@ -3,20 +3,21 @@
 import { useState, useMemo } from 'react';
 import {
   Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
-  Clock, Star, ArrowRight, GraduationCap, Plus, ExternalLink
+  Clock, Star, ArrowRight, Plus, ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from '@/components/ui/sheet';
-import { COURSES, searchCourses, getCourseByCode } from '@/lib/data/courses';
+import { COURSES } from '@/lib/data/courses';
 import { REQUIREMENTS, REQUIREMENT_GROUPS } from '@/lib/data/requirements';
 import { TRANSFER_MAPPINGS } from '@/lib/data/transfer-mappings';
-import { COMPLETED_COURSES } from '@/lib/data/marley-progress';
-import { SECOND_WRITING_COURSES, SECOND_WRITING_ALL_CODES } from '@/lib/data/second-writing-courses';
+import { useAcademicRecord } from '@/components/academic/academic-record-provider';
+import { useRequirements } from '@/hooks/use-requirements';
+import type { RequirementWithStatus, PlanCourse } from '@/lib/types';
+import { SECOND_WRITING_COURSES } from '@/lib/data/second-writing-courses';
 import { Course, Term, RequirementCategory } from '@/lib/types';
 
 interface CoursePickerProps {
@@ -25,42 +26,14 @@ interface CoursePickerProps {
   onSelectCourse: (course: Course) => void;
   semesterTerm?: Term;
   semesterSchool?: 'udel' | 'brookdale';
+  planCourses?: PlanCourse[];
   plannedCourseCodes?: string[]; // courses already in the plan
   totalPlanCredits?: number; // total credits across all semesters in the plan
 }
 
-// Build a lookup: Brookdale course code → UDel equivalent for requirement matching
-const brookdaleToUdelMap = new Map<string, string>();
-for (const m of TRANSFER_MAPPINGS) {
-  for (const bc of m.brookdaleCourses) {
-    if (!brookdaleToUdelMap.has(bc)) {
-      brookdaleToUdelMap.set(bc, m.udelCourseCode);
-    }
-  }
-}
-
-// Expand planned codes to include UDel equivalents for Brookdale courses
-function expandPlannedCodes(plannedCodes: Set<string>): Set<string> {
-  const expanded = new Set(plannedCodes);
-  for (const code of plannedCodes) {
-    const udelEquiv = brookdaleToUdelMap.get(code);
-    if (udelEquiv) expanded.add(udelEquiv);
-  }
-  return expanded;
-}
-
 // Build a structured list of requirements with their course options
-function buildRequirementSections(school: 'udel' | 'brookdale', query: string, plannedCodes: Set<string> = new Set(), totalPlanCredits: number = 0) {
+function buildRequirementSections(school: 'udel' | 'brookdale', query: string, evaluated: RequirementWithStatus[], totalPlanCredits: number = 0) {
   const q = query.toLowerCase();
-  // Expand planned codes so Brookdale courses match UDel requirement options
-  const expandedPlannedCodes = expandPlannedCodes(plannedCodes);
-  // Total credits from completed + in-progress courses (from transcript)
-  const baseCredits = COMPLETED_COURSES
-    .filter(c => c.status === 'completed' || c.status === 'transfer' || c.status === 'in_progress')
-    .reduce((s, c) => s + c.credits, 0);
-  // Use the actual total plan credits passed in (which includes planned courses accurately)
-  const totalCreditsInPlan = totalPlanCredits > 0 ? totalPlanCredits : baseCredits;
-
   // Group requirements by category
   const sections: {
     category: RequirementCategory;
@@ -82,41 +55,7 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
     const reqItems = reqs.map(req => {
-      // Determine status from completed/in-progress courses
-      let status: 'completed' | 'in_progress' | 'not_started' = 'not_started';
-      for (const cc of COMPLETED_COURSES) {
-        const fulfills = cc.fulfillsRequirements?.includes(req.id);
-        const matches = req.courseOptions?.includes(cc.courseCode);
-        if (fulfills || matches) {
-          if (cc.status === 'completed' || cc.status === 'transfer') {
-            status = 'completed';
-            break;
-          } else if (cc.status === 'in_progress') {
-            status = 'in_progress';
-          }
-        }
-      }
-
-      // Check if any planned course (or its UDel equivalent) fulfills this requirement
-      if (status === 'not_started') {
-        if (req.courseOptions) {
-          for (const code of req.courseOptions) {
-            if (expandedPlannedCodes.has(code)) {
-              status = 'in_progress';
-              break;
-            }
-          }
-        }
-        // Second writing: check if any planned course is in the approved list
-        if (req.id === 'second-writing') {
-          for (const code of expandedPlannedCodes) {
-            if (SECOND_WRITING_ALL_CODES.includes(code)) {
-              status = 'in_progress';
-              break;
-            }
-          }
-        }
-      }
+      const status = evaluated.find(r => r.id === req.id)?.status ?? 'not_started';
 
       // Get available courses for this requirement
       let courses: Course[] = [];
@@ -165,16 +104,7 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
 
       // Special: free-elective should only show completed if total plan credits >= 124
       if (req.id === 'free-elective') {
-        const remaining = Math.max(0, 124 - totalCreditsInPlan);
-
-        if (totalCreditsInPlan >= 124) {
-          status = 'completed';
-        } else if (totalCreditsInPlan > baseCredits) {
-          status = 'in_progress';
-        } else {
-          const hasElectiveCredits = COMPLETED_COURSES.some(c => c.fulfillsRequirements?.includes('free-elective'));
-          status = hasElectiveCredits ? 'in_progress' : 'not_started';
-        }
+        const remaining = Math.max(0, 124 - totalPlanCredits);
 
         const dynamicName = remaining > 0
           ? `Free Electives (${remaining} more credits needed)`
@@ -196,8 +126,8 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, p
 
       // For electives, don't show misleading 1/1 — show credit-based info
       if (group.category === 'elective') {
-        const remaining = Math.max(0, 124 - totalCreditsInPlan);
-        const isComplete = totalCreditsInPlan >= 124;
+        const remaining = Math.max(0, 124 - totalPlanCredits);
+        const isComplete = totalPlanCredits >= 124;
 
         sections.push({
           category: group.category,
@@ -317,47 +247,19 @@ function CourseButton({
 }
 
 function BrookdaleTransferList({
+  fulfilledReqIds,
   query,
   onSelect,
   plannedCodes,
   completedCodes,
 }: {
+  fulfilledReqIds: Set<string>;
   query: string;
   onSelect: (course: Course) => void;
   plannedCodes: Set<string>;
   completedCodes: Set<string>;
 }) {
   const q = query.toLowerCase();
-
-  // Build a set of requirement IDs that are already fulfilled (completed or in-progress)
-  const fulfilledReqIds = useMemo(() => {
-    const fulfilled = new Set<string>();
-    for (const req of REQUIREMENTS) {
-      let isFulfilled = false;
-      // Check completed/in-progress courses
-      for (const cc of COMPLETED_COURSES) {
-        const fulfills = cc.fulfillsRequirements?.includes(req.id);
-        const matches = req.courseOptions?.includes(cc.courseCode);
-        if (fulfills || matches) {
-          if (cc.status === 'completed' || cc.status === 'transfer' || cc.status === 'in_progress') {
-            isFulfilled = true;
-            break;
-          }
-        }
-      }
-      // Check planned courses
-      if (!isFulfilled && req.courseOptions) {
-        for (const code of req.courseOptions) {
-          if (plannedCodes.has(code)) {
-            isFulfilled = true;
-            break;
-          }
-        }
-      }
-      if (isFulfilled) fulfilled.add(req.id);
-    }
-    return fulfilled;
-  }, [plannedCodes]);
 
   // Check which ones fulfill a degree requirement (returns req name + id)
   const getReqMatch = (udelCode: string): { name: string; id: string } | null => {
@@ -806,9 +708,13 @@ export function CoursePicker({
   onSelectCourse,
   semesterTerm,
   semesterSchool = 'udel',
+  planCourses = [],
   plannedCourseCodes = [],
   totalPlanCredits = 0,
 }: CoursePickerProps) {
+  const { courses } = useAcademicRecord();
+  const { requirementsWithStatus } = useRequirements(planCourses);
+  const fulfilledReqIds = new Set(requirementsWithStatus.filter(r => r.projectedFulfilled).map(r => r.id));
   const [query, setQuery] = useState('');
   const [activeSchool, setActiveSchool] = useState<'udel' | 'brookdale'>(semesterSchool);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
@@ -822,14 +728,14 @@ export function CoursePicker({
   };
 
   const completedCodes = useMemo(
-    () => new Set(COMPLETED_COURSES.map(c => c.courseCode)),
-    []
+    () => new Set(courses.map(c => c.courseCode)),
+    [courses]
   );
   const plannedSet = useMemo(() => new Set(plannedCourseCodes), [plannedCourseCodes]);
 
   const sections = useMemo(
-    () => buildRequirementSections(activeSchool, query, plannedSet, totalPlanCredits || 0),
-    [activeSchool, query, plannedSet, totalPlanCredits]
+    () => buildRequirementSections(activeSchool, query, requirementsWithStatus, totalPlanCredits || 0),
+    [activeSchool, query, requirementsWithStatus, totalPlanCredits]
   );
 
   const electiveCourses = useMemo(
@@ -1024,6 +930,7 @@ export function CoursePicker({
           ) : (
             /* ====== Brookdale: flat transfer mapping list ====== */
             <BrookdaleTransferList
+              fulfilledReqIds={fulfilledReqIds}
               query={query}
               onSelect={handleSelect}
               plannedCodes={plannedSet}

@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useAcademicRecord } from '@/components/academic/academic-record-provider';
+import { creditTotals } from '@/lib/academic-record';
+import { MARLEY_PROFILE } from '@/lib/data/marley-progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { RequirementCategory } from '@/components/requirements/requirement-category';
 import { useRequirements } from '@/hooks/use-requirements';
@@ -10,15 +12,9 @@ import type { RequirementGroup } from '@/lib/types';
 export default function RequirementsPage() {
   const { groups, totalCompleted, totalInProgress, totalRequirements } = useRequirements();
 
-  const totalCreditsEarned = useMemo(
-    () => groups.reduce((sum, g) => sum + g.completedCredits, 0),
-    [groups]
-  );
-
-  const totalCredits = useMemo(
-    () => groups.reduce((sum, g) => sum + g.totalCredits, 0),
-    [groups]
-  );
+  const { courses } = useAcademicRecord();
+  const totalCreditsEarned = creditTotals(courses).completed;
+  const totalCredits = MARLEY_PROFILE.totalCreditsRequired;
 
   const overallProgressPercent =
     totalRequirements > 0 ? Math.round((totalCompleted / totalRequirements) * 100) : 0;

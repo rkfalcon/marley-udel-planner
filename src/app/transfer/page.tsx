@@ -8,26 +8,9 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { TRANSFER_MAPPINGS, RECOMMENDED_TRANSFERS } from '@/lib/data/transfer-mappings';
 import { REQUIREMENTS } from '@/lib/data/requirements';
-import { COMPLETED_COURSES } from '@/lib/data/marley-progress';
+import { useRequirements } from '@/hooks/use-requirements';
 
 // ─── Derived data ────────────────────────────────────────────────────────────
-
-/** UDel course codes that have already been satisfied by completed/transfer/in-progress work */
-const FULFILLED_CODES = new Set<string>(
-  COMPLETED_COURSES.flatMap((c) => [c.courseCode])
-);
-
-/** All UDel course codes that appear in at least one requirement's courseOptions */
-const REQUIREMENT_CODES = new Set<string>(
-  REQUIREMENTS.flatMap((r) => r.courseOptions ?? [])
-);
-
-/** Returns true when this mapping's UDel equivalent could fulfill a remaining requirement */
-function fulfillsRemainingRequirement(udelCode: string): boolean {
-  if (!REQUIREMENT_CODES.has(udelCode)) return false;
-  // Check whether it is already satisfied
-  return !FULFILLED_CODES.has(udelCode);
-}
 
 /** Collect unique departments from Brookdale course codes (e.g. "MATH", "PSYC") */
 const ALL_DEPARTMENTS = Array.from(
@@ -129,6 +112,8 @@ function RecommendedCard({ mappingId, priority, reason }: RecommendedCardProps) 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function TransferPage() {
+  const { requirementsWithStatus } = useRequirements();
+  const fulfillsRemainingRequirement = (code: string) => requirementsWithStatus.some(r => !r.projectedFulfilled && r.courseOptions?.includes(code));
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [selectedDept, setSelectedDept] = useState<string>('');

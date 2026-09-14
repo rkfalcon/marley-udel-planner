@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, Menu, BookOpen, Calendar, ArrowRightLeft, LayoutDashboard, LinkIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { buttonVariants } from "@/components/ui/button";
+import { GraduationCap, Menu, BookOpen, Calendar, ArrowRightLeft, LayoutDashboard, LinkIcon, Shield } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -15,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const navLinks = [
+  { href: "/admin", label: "Admin", icon: Shield },
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/requirements", label: "Requirements", icon: BookOpen },
   { href: "/plan/new", label: "Plan Builder", icon: Calendar },

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { Plan, PlanSemester, PlanCourse, Term, School, CourseStatus } from '@/lib/types';
-import { COMPLETED_COURSES } from '@/lib/data/marley-progress';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { Plan, PlanSemester, PlanCourse, Term, School } from '@/lib/types';
+import { useAcademicRecord } from '@/components/academic/academic-record-provider';
+import { reconcilePlan } from '@/lib/academic-record';
 
 function generateId() {
   return crypto.randomUUID();
@@ -27,110 +28,6 @@ function sortSemesters(semesters: PlanSemester[]): PlanSemester[] {
     if (a.year !== b.year) return a.year - b.year;
     return SEMESTER_ORDER[a.term] - SEMESTER_ORDER[b.term];
   });
-}
-
-function createPastSemesters(): PlanSemester[] {
-  const fall25Courses: PlanCourse[] = COMPLETED_COURSES
-    .filter(c => c.term === 'Fall' && c.year === 2025 && c.school === 'udel')
-    .map(c => ({
-      id: generateId(),
-      planSemesterId: '',
-      courseCode: c.courseCode,
-      title: c.title,
-      school: c.school,
-      credits: c.credits,
-      status: c.status,
-      grade: c.grade,
-    }));
-
-  // Prior transfer credits (taken before starting UDel — tagged as Summer 2024)
-  const priorTransferCourses: PlanCourse[] = COMPLETED_COURSES
-    .filter(c => c.status === 'transfer' && c.term === 'Summer' && c.year === 2024)
-    .map(c => ({
-      id: generateId(),
-      planSemesterId: '',
-      courseCode: c.courseCode,
-      title: c.title,
-      school: 'brookdale' as School,
-      credits: c.credits,
-      status: 'completed' as CourseStatus,
-      grade: c.grade,
-    }));
-
-  // Winter 2025 Brookdale courses (HIST 105 taken at Brookdale)
-  const winter25BrookdaleCourses: PlanCourse[] = COMPLETED_COURSES
-    .filter(c => c.status === 'transfer' && c.term === 'Winter' && c.year === 2025 && c.school === 'brookdale')
-    .map(c => ({
-      id: generateId(),
-      planSemesterId: '',
-      courseCode: c.courseCode,
-      title: c.title,
-      school: 'brookdale' as School,
-      credits: c.credits,
-      status: 'completed' as CourseStatus,
-      grade: c.grade,
-    }));
-
-  const spring26Courses: PlanCourse[] = COMPLETED_COURSES
-    .filter(c => c.term === 'Spring' && c.year === 2026)
-    .map(c => ({
-      id: generateId(),
-      planSemesterId: '',
-      courseCode: c.courseCode,
-      title: c.title,
-      school: c.school,
-      credits: c.credits,
-      status: c.status,
-      grade: c.grade,
-    }));
-
-  const priorId = generateId();
-  const fall25Id = generateId();
-  const winter25BrookdaleId = generateId();
-  const spring26Id = generateId();
-
-  return [
-    // Prior transfer credits from Brookdale (Summer 2024 → Academic Year 2024-2025)
-    {
-      id: priorId,
-      planId: '',
-      term: 'Summer' as Term,
-      year: 2024,
-      school: 'brookdale' as School,
-      sortOrder: 0,
-      courses: priorTransferCourses.map(c => ({ ...c, planSemesterId: priorId })),
-    },
-    // Fall 2025 at UDel (Academic Year 2025-2026)
-    {
-      id: fall25Id,
-      planId: '',
-      term: 'Fall' as Term,
-      year: 2025,
-      school: 'udel' as School,
-      sortOrder: 1,
-      courses: fall25Courses.map(c => ({ ...c, planSemesterId: fall25Id })),
-    },
-    // Winter 2025 at Brookdale — winter break of Fall 2025 (Academic Year 2025-2026)
-    ...(winter25BrookdaleCourses.length > 0 ? [{
-      id: winter25BrookdaleId,
-      planId: '',
-      term: 'Winter' as Term,
-      year: 2025,
-      school: 'brookdale' as School,
-      sortOrder: 2,
-      courses: winter25BrookdaleCourses.map(c => ({ ...c, planSemesterId: winter25BrookdaleId })),
-    }] : []),
-    // Spring 2026 at UDel (Academic Year 2025-2026)
-    {
-      id: spring26Id,
-      planId: '',
-      term: 'Spring' as Term,
-      year: 2026,
-      school: 'udel' as School,
-      sortOrder: 3,
-      courses: spring26Courses.map(c => ({ ...c, planSemesterId: spring26Id })),
-    },
-  ];
 }
 
 function createFutureSemesters(targetGrad: string): PlanSemester[] {
@@ -170,7 +67,6 @@ function createFutureSemesters(targetGrad: string): PlanSemester[] {
   const targetPos = calendarPosition(targetTerm as Term, targetYear);
   // Include 1 extra Brookdale semester after target to complete the academic year
   // e.g., if target is Spring 2028, also include Summer 2028 (Brookdale)
-  const extraPos = targetPos + 4 * 12; // generous buffer
   const filtered = allTerms.filter(({ term, year }) => {
     const pos = calendarPosition(term, year);
     if (pos <= targetPos) return true;
@@ -197,7 +93,9 @@ function createFutureSemesters(targetGrad: string): PlanSemester[] {
 }
 
 export function usePlan() {
-  const [plan, setPlan] = useState<Plan | null>(null);
+  const [storedPlan, setPlan] = useState<Plan | null>(null);
+  const { record } = useAcademicRecord();
+  const plan = useMemo(() => storedPlan && record ? reconcilePlan(storedPlan, record.courses) : storedPlan, [storedPlan, record]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -207,7 +105,6 @@ export function usePlan() {
 
   const createPlan = useCallback((name: string, targetGraduation: string, isEarly: boolean = false) => {
     const planId = generateId();
-    const pastSemesters = createPastSemesters().map(s => ({ ...s, planId }));
     const futureSemesters = createFutureSemesters(targetGraduation).map(s => ({ ...s, planId }));
 
     const newPlan: Plan = {
@@ -218,20 +115,22 @@ export function usePlan() {
       isEarlyGraduation: isEarly,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      semesters: sortSemesters([...pastSemesters, ...futureSemesters]),
+      semesters: sortSemesters(futureSemesters),
     };
 
-    setPlan(newPlan);
-    return newPlan;
-  }, []);
+    const current = record ? reconcilePlan(newPlan, record.courses) : newPlan;
+    setPlan(current);
+    return current;
+  }, [record]);
 
   const addCourse = useCallback((semesterId: string, course: Omit<PlanCourse, 'id' | 'planSemesterId'>) => {
     setPlan(prev => {
       if (!prev) return null;
+      const current = record ? reconcilePlan(prev, record.courses) : prev;
       return {
-        ...prev,
+        ...current,
         updatedAt: new Date().toISOString(),
-        semesters: prev.semesters.map(s => {
+        semesters: current.semesters.map(s => {
           if (s.id !== semesterId) return s;
           return {
             ...s,
@@ -240,24 +139,25 @@ export function usePlan() {
         }),
       };
     });
-  }, []);
+  }, [record]);
 
   const removeCourse = useCallback((semesterId: string, courseId: string) => {
     setPlan(prev => {
       if (!prev) return null;
+      const current = record ? reconcilePlan(prev, record.courses) : prev;
       return {
-        ...prev,
+        ...current,
         updatedAt: new Date().toISOString(),
-        semesters: prev.semesters.map(s => {
+        semesters: current.semesters.map(s => {
           if (s.id !== semesterId) return s;
           return {
             ...s,
-            courses: s.courses.filter(c => c.id !== courseId),
+            courses: s.courses.filter(c => c.id !== courseId || !!c.academicCourseId),
           };
         }),
       };
     });
-  }, []);
+  }, [record]);
 
   const savePlan = useCallback(async (pin?: string, options?: { action?: 'create' | 'update' | 'save_as_new' }) => {
     const currentPlan = planRef.current;
@@ -336,7 +236,6 @@ export function usePlan() {
       // Legacy plan (no embedded data) — rebuild from template
       if (data._legacy || (data.semesters && data.semesters.length === 0)) {
         const targetGrad = data.targetGraduation || 'Spring 2028';
-        const pastSemesters = createPastSemesters().map(s => ({ ...s, planId: data.id }));
         const futureSemesters = createFutureSemesters(targetGrad).map(s => ({ ...s, planId: data.id }));
 
         const rebuiltPlan: Plan = {
@@ -347,7 +246,7 @@ export function usePlan() {
           isEarlyGraduation: data.isEarlyGraduation || false,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
-          semesters: sortSemesters([...pastSemesters, ...futureSemesters]),
+          semesters: sortSemesters(futureSemesters),
         };
 
         setPlan(rebuiltPlan);

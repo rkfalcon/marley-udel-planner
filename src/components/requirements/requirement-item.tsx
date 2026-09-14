@@ -8,7 +8,7 @@ import type { RequirementWithStatus } from '@/lib/types';
 // Elective course suggestions grouped by type
 const ELECTIVE_SUGGESTIONS: Record<string, { code: string; title: string; credits: number; note?: string }[]> = {
   'SLP-Related': [
-    { code: 'HDFS 201', title: 'Life Span Development', credits: 3, note: 'Currently taking Spring 2026' },
+    { code: 'HDFS 201', title: 'Life Span Development', credits: 3 },
     { code: 'HDFS 223', title: 'Foundations of Child Development', credits: 3 },
     { code: 'PSYC 350', title: 'Developmental Psychology', credits: 3 },
     { code: 'PSYC 314', title: 'Brain and Behavior', credits: 3 },
@@ -121,7 +121,7 @@ export function RequirementItem({ requirement }: RequirementItemProps) {
               </span>
             )}
             {status === 'in_progress' && (
-              <span className="text-xs italic text-muted-foreground">In progress</span>
+              <span className="text-xs italic text-muted-foreground">{fulfilledBy.status === 'planned' ? 'Planned' : 'In progress'}</span>
             )}
           </div>
         ) : isElective ? (

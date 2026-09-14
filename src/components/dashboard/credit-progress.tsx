@@ -11,14 +11,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  getCreditsCompleted,
-  getCreditsInProgress,
-  getCreditsRemaining,
-  COMPLETED_COURSES,
-  MARLEY_PROFILE,
-} from '@/lib/data/marley-progress';
-import { REQUIREMENTS } from '@/lib/data/requirements';
+import { MARLEY_PROFILE } from '@/lib/data/marley-progress';
+import { useAcademicRecord } from '@/components/academic/academic-record-provider';
+import { creditTotals } from '@/lib/academic-record';
+import { evaluateRequirements } from '@/lib/requirement-evaluation';
 import { CheckCircle2, Clock, BookOpen, GraduationCap, ArrowRight } from 'lucide-react';
 
 const RADIUS = 80;
@@ -102,28 +98,6 @@ function StatCard({ label, value, colorClass, dotClass, sublabel, onClick }: Sta
 }
 
 // Build the remaining requirements list
-function getRemainingRequirements() {
-  const completedCodes = new Set(COMPLETED_COURSES.map(c => c.courseCode));
-  const inProgressCodes = new Set(
-    COMPLETED_COURSES.filter(c => c.status === 'in_progress').map(c => c.courseCode)
-  );
-
-  return REQUIREMENTS.filter(req => {
-    if (req.id === 'free-elective') return true;
-    // Check if any of the course options are completed or in progress
-    const isFulfilled = req.courseOptions?.some(code => completedCodes.has(code));
-    const isInProgress = req.courseOptions?.some(code => inProgressCodes.has(code));
-    return !isFulfilled && !isInProgress;
-  }).map(req => ({
-    id: req.id,
-    name: req.name,
-    credits: req.creditsRequired,
-    category: req.category,
-    description: req.description,
-    courseOptions: req.courseOptions || [],
-  }));
-}
-
 const CATEGORY_LABELS: Record<string, string> = {
   university: 'University',
   college: 'College of A&S',
@@ -141,30 +115,32 @@ function CourseDetailDialog({
   onOpenChange: (open: boolean) => void;
   category: CreditCategory;
 }) {
-  const completedCourses = COMPLETED_COURSES.filter(
+  const { courses } = useAcademicRecord();
+  const totals = creditTotals(courses);
+  const completedCourses = courses.filter(
     c => c.status === 'completed' || c.status === 'transfer'
   );
-  const inProgressCourses = COMPLETED_COURSES.filter(c => c.status === 'in_progress');
-  const remaining = getRemainingRequirements();
+  const inProgressCourses = courses.filter(c => c.status === 'in_progress');
+  const remaining = evaluateRequirements(courses).requirementsWithStatus.filter(r => r.status !== 'completed').map(r => ({ ...r, credits: r.creditsRequired, courseOptions: r.courseOptions ?? [] }));
 
   const config = {
     completed: {
       title: 'Completed Credits',
       icon: <CheckCircle2 className="h-5 w-5 text-green-500" />,
       accent: 'green' as const,
-      subtitle: `${getCreditsCompleted()} credits earned across ${completedCourses.length} courses`,
+      subtitle: `${totals.completed} credits earned across ${completedCourses.length} courses`,
     },
     in_progress: {
       title: 'In Progress Credits',
       icon: <Clock className="h-5 w-5 text-amber-500" />,
       accent: 'amber' as const,
-      subtitle: `${getCreditsInProgress()} credits currently in progress — Spring 2026`,
+      subtitle: `${totals.inProgress} credits currently in progress`,
     },
     remaining: {
       title: 'Remaining Credits Needed',
       icon: <BookOpen className="h-5 w-5 text-slate-500" />,
       accent: 'slate' as const,
-      subtitle: `${getCreditsRemaining()} credits still needed to reach ${MARLEY_PROFILE.totalCreditsRequired}`,
+      subtitle: `${totals.remaining} credits still needed to reach ${MARLEY_PROFILE.totalCreditsRequired}`,
     },
   }[category];
 
@@ -304,7 +280,7 @@ function CourseDetailDialog({
                 <Separator className="mt-3" />
                 <div className="flex items-center justify-between pt-3 px-3 -mx-1">
                   <span className="text-sm font-semibold text-slate-600">Total Completed</span>
-                  <span className="text-sm font-bold text-green-600">{getCreditsCompleted()} credits</span>
+                  <span className="text-sm font-bold text-green-600">{totals.completed} credits</span>
                 </div>
               </>
             )}
@@ -314,7 +290,7 @@ function CourseDetailDialog({
                 <div className="flex items-center gap-2 mb-2">
                   <GraduationCap className="h-3.5 w-3.5 text-blue-500" />
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Spring 2026 — University of Delaware
+                    Currently enrolled courses
                   </span>
                 </div>
                 {inProgressCourses.map(course => (
@@ -345,7 +321,7 @@ function CourseDetailDialog({
                 <Separator className="mt-3" />
                 <div className="flex items-center justify-between pt-3 px-3 -mx-1">
                   <span className="text-sm font-semibold text-slate-600">Total In Progress</span>
-                  <span className="text-sm font-bold text-amber-600">{getCreditsInProgress()} credits</span>
+                  <span className="text-sm font-bold text-amber-600">{totals.inProgress} credits</span>
                 </div>
               </>
             )}
@@ -420,7 +396,7 @@ function CourseDetailDialog({
                       </p>
                     </div>
                     <span className={cn('text-xs font-bold px-2 py-0.5 rounded-md', accentStyles.creditBg)}>
-                      ~{getCreditsRemaining() - remaining.filter(r => r.id !== 'free-elective').reduce((s, r) => s + r.credits, 0)} cr
+                      ~{Math.max(0, totals.remaining - remaining.filter(r => r.id !== 'free-elective').reduce((s, r) => s + r.credits, 0))} cr
                     </span>
                   </div>
                 </div>
@@ -428,7 +404,7 @@ function CourseDetailDialog({
                 <Separator className="mt-3" />
                 <div className="flex items-center justify-between pt-3 px-3 -mx-1">
                   <span className="text-sm font-semibold text-slate-600">Total Remaining</span>
-                  <span className="text-sm font-bold text-slate-600">{getCreditsRemaining()} credits</span>
+                  <span className="text-sm font-bold text-slate-600">{totals.remaining} credits</span>
                 </div>
               </>
             )}
@@ -444,9 +420,11 @@ export function CreditProgress() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<CreditCategory>('completed');
 
-  const completed = getCreditsCompleted();
-  const inProgress = getCreditsInProgress();
-  const remaining = getCreditsRemaining();
+  const { courses } = useAcademicRecord();
+  const totals = creditTotals(courses);
+  const completed = totals.completed;
+  const inProgress = totals.inProgress;
+  const remaining = totals.remaining;
   const total = MARLEY_PROFILE.totalCreditsRequired;
 
   const completedLength = (completed / total) * CIRCUMFERENCE;

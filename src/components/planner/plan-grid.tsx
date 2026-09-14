@@ -221,6 +221,7 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
 
       {/* Course picker sheet */}
       <CoursePicker
+        planCourses={plan.semesters.flatMap(s => s.courses)}
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         onSelectCourse={handleSelectCourse}

@@ -31,6 +31,7 @@ const CATEGORY_META: Record<
 interface CategoryCardProps {
   category: RequirementCategoryType;
   completedCount: number;
+  hasActivity: boolean;
   totalCount: number;
   completedCredits: number;
   totalCredits: number;
@@ -40,6 +41,7 @@ interface CategoryCardProps {
 function CategoryCard({
   category,
   completedCount,
+  hasActivity,
   totalCount,
   completedCredits,
   totalCredits,
@@ -49,19 +51,13 @@ function CategoryCard({
   const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   const isComplete = completedCount === totalCount && totalCount > 0;
-  const isStarted = completedCount > 0;
+  const isStarted = hasActivity;
 
   const statusColor = isComplete
     ? 'text-green-600'
     : isStarted
     ? 'text-amber-600'
     : 'text-slate-400';
-
-  const progressColor = isComplete
-    ? '[&>div]:bg-green-500'
-    : isStarted
-    ? '[&>div]:bg-amber-400'
-    : '[&>div]:bg-slate-300';
 
   const badgeVariant = isComplete ? 'default' : isStarted ? 'secondary' : 'outline';
 
@@ -215,13 +211,14 @@ function CategoryDetailDialog({
 export function RequirementsOverview() {
   const { groups, totalCompleted, totalRequirements } = useRequirements();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [activeGroup, setActiveGroup] = useState<RequirementGroup | null>(null);
+  const [activeCategory, setActiveCategory] = useState<RequirementCategoryType | null>(null);
+  const activeGroup = groups.find(g => g.category === activeCategory) ?? null;
 
   const overallPercent =
     totalRequirements > 0 ? Math.round((totalCompleted / totalRequirements) * 100) : 0;
 
   const openDialog = (group: RequirementGroup) => {
-    setActiveGroup(group);
+    setActiveCategory(group.category);
     setDialogOpen(true);
   };
 
@@ -243,6 +240,7 @@ export function RequirementsOverview() {
           <CategoryCard
             key={group.category}
             category={group.category}
+            hasActivity={group.requirements.some(r => r.status !== 'not_started')}
             completedCount={group.completedCount}
             totalCount={group.totalCount}
             completedCredits={group.completedCredits}

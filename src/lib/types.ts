@@ -85,6 +85,7 @@ export interface PlanSemester {
 }
 
 export interface PlanCourse {
+  academicCourseId?: string;
   id: string;
   planSemesterId: string;
   courseCode: string;
@@ -99,6 +100,7 @@ export interface PlanCourse {
 }
 
 export interface RequirementWithStatus extends Requirement {
+  projectedFulfilled?: boolean;
   status: 'completed' | 'in_progress' | 'not_started';
   fulfilledBy?: CompletedCourse | PlanCourse;
   children?: RequirementWithStatus[];

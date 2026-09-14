@@ -1,56 +1,16 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'next/navigation';
-import { MARLEY_PROFILE, COMPLETED_COURSES } from '@/lib/data/marley-progress';
+import { MARLEY_PROFILE } from '@/lib/data/marley-progress';
 import { REQUIREMENTS } from '@/lib/data/requirements';
 import { TRANSFER_MAPPINGS } from '@/lib/data/transfer-mappings';
-import { SECOND_WRITING_ALL_CODES } from '@/lib/data/second-writing-courses';
-import { getCourseByCode } from '@/lib/data/courses';
-import { Plan, PlanSemester, PlanCourse } from '@/lib/types';
+import { usePlan } from '@/hooks/use-plan';
+import { evaluateRequirements, matchesRequirement } from '@/lib/requirement-evaluation';
+import { PlanSemester, PlanCourse } from '@/lib/types';
 
-// Requirement matching helpers (mirrors use-requirements logic)
-const secondWritingSet = new Set(SECOND_WRITING_ALL_CODES);
-const brookdaleToUdel = new Map<string, string>();
-for (const m of TRANSFER_MAPPINGS) {
-  for (const bc of m.brookdaleCourses) {
-    if (!brookdaleToUdel.has(bc)) brookdaleToUdel.set(bc, m.udelCourseCode);
-  }
-}
-
-function getUdelEquiv(code: string, school?: string): string {
-  if (school === 'brookdale' || brookdaleToUdel.has(code)) return brookdaleToUdel.get(code) || code;
-  return code;
-}
-
-function findRequirementsFulfilled(courseCode: string, school: string): string[] {
-  const udelEquiv = getUdelEquiv(courseCode, school);
-  const fulfilled: string[] = [];
-
-  // Check completed courses for pre-mapped fulfillments
-  const completed = COMPLETED_COURSES.find(c => c.courseCode === courseCode);
-  if (completed?.fulfillsRequirements) {
-    for (const reqId of completed.fulfillsRequirements) {
-      const req = REQUIREMENTS.find(r => r.id === reqId);
-      if (req && req.id !== 'free-elective') fulfilled.push(req.name);
-    }
-  }
-
-  // Check requirement course options
-  for (const req of REQUIREMENTS) {
-    if (req.id === 'free-elective') continue;
-    if (fulfilled.some(f => f === req.name)) continue;
-
-    const matchesDirect = req.courseOptions?.includes(courseCode);
-    const matchesEquiv = req.courseOptions?.includes(udelEquiv);
-    const matchesSW = req.id === 'second-writing' && (secondWritingSet.has(courseCode) || secondWritingSet.has(udelEquiv));
-
-    if (matchesDirect || matchesEquiv || matchesSW) {
-      fulfilled.push(req.name);
-    }
-  }
-
-  return fulfilled;
+function findRequirementsFulfilled(course: PlanCourse): string[] {
+  return REQUIREMENTS.filter(r => r.id !== 'free-elective' && matchesRequirement(course, r)).map(r => r.name);
 }
 
 function getTransferInfo(courseCode: string): string | null {
@@ -84,19 +44,9 @@ function StatusBadge({ status }: { status: string }) {
 export default function PrintPlanPage() {
   const params = useParams();
   const slug = params?.slug as string;
-  const [plan, setPlan] = useState<Plan | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!slug) return;
-    fetch(`/api/plans?slug=${encodeURIComponent(slug)}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.semesters) setPlan(data as Plan);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [slug]);
+  const { plan, loading, loadPlan } = usePlan();
+  const printed = useRef(false);
+  useEffect(() => { if (slug) void loadPlan(slug); }, [slug, loadPlan]);
 
   // Compute stats
   const stats = useMemo(() => {
@@ -110,21 +60,9 @@ export default function PrintPlanPage() {
     const inProgressCredits = inProgress.reduce((s, c) => s + c.credits, 0);
     const plannedCredits = planned.reduce((s, c) => s + c.credits, 0);
 
-    // Count fulfilled requirements
-    const fulfilledReqs = new Set<string>();
-    for (const course of allCourses) {
-      const reqs = findRequirementsFulfilled(course.courseCode, course.school);
-      reqs.forEach(r => fulfilledReqs.add(r));
-    }
-    // Check completed courses from Marley's transcript too
-    for (const course of COMPLETED_COURSES) {
-      const reqs = findRequirementsFulfilled(course.courseCode, course.school);
-      reqs.forEach(r => fulfilledReqs.add(r));
-    }
-
-    const unfulfilledReqs = REQUIREMENTS
-      .filter(r => r.id !== 'free-elective' && !fulfilledReqs.has(r.name))
-      .map(r => r.name);
+    const evaluated = evaluateRequirements([], allCourses).requirementsWithStatus;
+    const fulfilledReqs = new Set(evaluated.filter(r => r.projectedFulfilled).map(r => r.name));
+    const unfulfilledReqs = evaluated.filter(r => !r.projectedFulfilled).map(r => r.name);
 
     return {
       totalCredits,
@@ -133,7 +71,7 @@ export default function PrintPlanPage() {
       plannedCredits,
       remaining: Math.max(0, 124 - totalCredits),
       fulfilledCount: fulfilledReqs.size,
-      totalReqs: REQUIREMENTS.filter(r => r.id !== 'free-elective').length,
+      totalReqs: REQUIREMENTS.length,
       unfulfilledReqs,
     };
   }, [plan]);
@@ -144,7 +82,7 @@ export default function PrintPlanPage() {
     const years = new Map<string, PlanSemester[]>();
     for (const sem of plan.semesters) {
       // Academic year: Fall X and Spring/Summer/Winter X+1 belong to X–(X+1)
-      const ay = sem.term === 'Fall' || sem.term === 'Summer'
+      const ay = sem.term === 'Fall' || sem.term === 'Winter'
         ? `${sem.year}–${sem.year + 1}`
         : `${sem.year - 1}–${sem.year}`;
       if (!years.has(ay)) years.set(ay, []);
@@ -159,8 +97,8 @@ export default function PrintPlanPage() {
 
   useEffect(() => {
     // Auto-trigger print after a brief delay to let styles render
-    if (plan && !loading) {
-      const timer = setTimeout(() => window.print(), 500);
+    if (plan && !loading && !printed.current) {
+      const timer = setTimeout(() => { printed.current = true; window.print(); }, 500);
       return () => clearTimeout(timer);
     }
   }, [plan, loading]);
@@ -253,7 +191,7 @@ export default function PrintPlanPage() {
               </>}
             </div>
             <div className="mt-2 pt-2 border-t text-sm">
-              <span className="text-gray-600">Requirements Met:</span>
+              <span className="text-gray-600">Requirements Covered:</span>
               <span className="font-semibold ml-1">{stats.fulfilledCount} / {stats.totalReqs}</span>
             </div>
           </div>
@@ -308,7 +246,7 @@ export default function PrintPlanPage() {
                           const isElecPlaceholder = course.courseCode.startsWith('ELEC');
                           const reqsFulfilled = isElecPlaceholder
                             ? ['Free Elective']
-                            : findRequirementsFulfilled(course.courseCode, course.school);
+                            : findRequirementsFulfilled(course);
                           const transferInfo = isBrookdale ? getTransferInfo(course.courseCode) : null;
 
                           // For placeholders: show user-entered label if present; else "ELECTIVE"

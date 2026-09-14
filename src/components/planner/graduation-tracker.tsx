@@ -52,7 +52,7 @@ export function GraduationTracker({ plan }: GraduationTrackerProps) {
   );
 
   const plannedOnlyCourses = useMemo(
-    () => allPlanCourses.filter((c) => c.status === 'planned'),
+    () => allPlanCourses.filter((c) => !c.academicCourseId),
     [allPlanCourses]
   );
 
@@ -78,7 +78,7 @@ export function GraduationTracker({ plan }: GraduationTrackerProps) {
     Math.round((totalCreditsSoFar / TOTAL_CREDITS_REQUIRED) * 100)
   );
   const creditsNeeded = Math.max(0, TOTAL_CREDITS_REQUIRED - totalCreditsSoFar);
-  const isOnTrack = totalCreditsSoFar >= TOTAL_CREDITS_REQUIRED;
+  const isOnTrack = totalCreditsSoFar >= TOTAL_CREDITS_REQUIRED && totalFulfilled === totalRequirements;
 
   // Estimate graduation
   const estimatedGrad = useMemo(() => {
@@ -91,7 +91,7 @@ export function GraduationTracker({ plan }: GraduationTrackerProps) {
 
   const requirementSummary = useMemo(() => {
     return { met: totalFulfilled, inProgress: totalInProgress, total: totalRequirements };
-  }, [totalCompleted, totalInProgress, totalRequirements]);
+  }, [totalFulfilled, totalInProgress, totalRequirements]);
 
   return (
     <Card className="border-slate-200 shadow-sm h-full flex flex-col">
@@ -162,7 +162,7 @@ export function GraduationTracker({ plan }: GraduationTrackerProps) {
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-slate-600">Requirements</span>
             <span className="text-xs text-slate-500">
-              <span className="font-bold text-slate-700">{requirementSummary.met}</span>/{requirementSummary.total} met
+              <span className="font-bold text-slate-700">{requirementSummary.met}</span>/{requirementSummary.total} covered
             </span>
           </div>
 

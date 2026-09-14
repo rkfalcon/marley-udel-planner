@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AcademicRecordProvider } from "@/components/academic/academic-record-provider";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({
@@ -28,7 +29,7 @@ export default function RootLayout({
         <TooltipProvider>
           <Header />
           <main className="flex-1">
-            <div className="max-w-7xl mx-auto px-4 py-8">{children}</div>
+            <div className="max-w-7xl mx-auto px-4 py-8"><AcademicRecordProvider>{children}</AcademicRecordProvider></div>
           </main>
           <Footer />
         </TooltipProvider>
