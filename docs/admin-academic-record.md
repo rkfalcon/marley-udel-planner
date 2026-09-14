@@ -34,8 +34,8 @@ Run `npm test`, `npx tsc --noEmit`, `npm run lint`, and `npm run build`. Browser
 
 ## Verification status
 
-September 14, 2026: 20 automated checks pass; TypeScript and production build pass. Lint reports no errors (13 existing unused-variable warnings remain). Desktop/mobile browser checks covered sign-in, adding a Fall course, moving it to Summer, editing credits/grade/status, bulk completion, archive propagation, shared dashboard/requirements totals, saved-plan reconciliation and print totals. A local fixture was used for writes.
+September 14, 2026: 20 automated checks pass; TypeScript and production build pass. Lint reports no errors (13 unused-variable warnings remain). Desktop/mobile browser checks covered sign-in, adding a Fall course, moving it to Summer, editing credits/grade/status, bulk completion, archive propagation, shared dashboard/requirements totals, saved-plan reconciliation and print totals. A local fixture was used for writes.
 
 Preview: https://marley-udel-planner-fnf85qmyf-9i9e.vercel.app
 
-The preview reads the real seeded database. Production has not been promoted. Admin activation awaits the user’s email and account setup.
+Production is live at https://marley-udel-planner.vercel.app/admin. The approved admin account is provisioned, and ADMIN_EMAIL is configured in production and development. Live sign-in, secure session cookies, authenticated session validation and sign-out were verified. The academic record remains at revision 0 with the original 17 courses. Generated login details are stored only in a private, git-ignored local file.

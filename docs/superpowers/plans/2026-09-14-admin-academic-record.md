@@ -38,5 +38,5 @@
 ## Task 5: Verify and deliver
 - [x] Run tests, TypeScript, lint and production build. Fix new failures and distinguish existing issues.
 - [x] Exercise admin add/edit/complete/archive and dashboard/requirements/planner/print in a browser.
-- [ ] Configure ADMIN_EMAIL and provision the approved account once the user supplies the email; promote the verified preview to production.
+- [x] Configure ADMIN_EMAIL and provision the approved account; publish to production and verify live authentication and unchanged academic records.
 - [x] Document migration and provisioning; deployed preview and verified real database reads (17 courses, revision 0).
