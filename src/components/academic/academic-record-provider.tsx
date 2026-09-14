@@ -30,11 +30,13 @@ export function AcademicRecordProvider({
   const [error, setError] = useState<string | null>(null);
   const pathname = usePathname();
   const sequence = useRef(0);
+  const channel = useRef<BroadcastChannel | null>(null);
   const acceptRecord = useCallback((next: AcademicRecord) => {
     sequence.current++;
     setRecord((prev) => (prev && prev.revision > next.revision ? prev : next));
     setError(null);
     setLoading(false);
+    channel.current?.postMessage({ revision: next.revision });
   }, []);
   const refresh = useCallback(async () => {
     const ticket = ++sequence.current;
@@ -79,6 +81,18 @@ export function AcademicRecordProvider({
       document.removeEventListener("visibilitychange", focus);
     };
   }, [refresh, pathname]);
+  useEffect(() => {
+    if (typeof window.BroadcastChannel !== "function") return;
+    const updates = new window.BroadcastChannel("marley-academic-record");
+    channel.current = updates;
+    updates.onmessage = () => {
+      void refresh();
+    };
+    return () => {
+      channel.current = null;
+      updates.close();
+    };
+  }, [refresh]);
   const courses = useMemo(
     () => (record ? activeCourses(record.courses) : []),
     [record],

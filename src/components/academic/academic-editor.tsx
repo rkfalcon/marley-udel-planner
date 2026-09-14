@@ -34,16 +34,16 @@ export function AcademicEditor({
   onSessionExpired: () => void;
 }) {
   const { record: latest, acceptRecord, refresh } = useAcademicRecord();
-  const [base, setBase] = useState(initialRecord);
-  const [draft, setDraft] = useState(initialRecord.courses);
+  const base = latest ?? initialRecord;
+  const draft = base.courses;
+  const [editingRevision, setEditingRevision] = useState(base.revision);
   const [editing, setEditing] = useState<AcademicCourse | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const dirty =
-    JSON.stringify(draft) !== JSON.stringify(base.courses) || editing !== null;
-  const conflict = latest && latest.revision !== base.revision;
+  const dirty = editing !== null || busy;
+  const conflict = editing !== null && base.revision !== editingRevision;
   const totals = creditTotals(draft);
   const semesters = useMemo(() => {
     const groups = new Map<string, AcademicCourse[]>();
@@ -65,7 +65,7 @@ export function AcademicEditor({
       const a = (e.target as HTMLElement).closest("a[href]");
       if (
         a &&
-        !window.confirm("Leave this page and discard unsaved academic changes?")
+        !window.confirm("Leave this page without finishing your course update?")
       ) {
         e.preventDefault();
         e.stopPropagation();
@@ -78,7 +78,11 @@ export function AcademicEditor({
       document.removeEventListener("click", navigate, true);
     };
   }, [dirty]);
-  async function save() {
+  async function save(
+    courses: AcademicCourse[],
+    revision = base.revision,
+  ): Promise<boolean> {
+    if (busy || !canSave) return false;
     setBusy(true);
     setError("");
     setMessage("");
@@ -86,26 +90,27 @@ export function AcademicEditor({
       const res = await fetch("/api/academic-record", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courses: draft, revision: base.revision }),
+        body: JSON.stringify({ courses, revision }),
+        signal: AbortSignal.timeout(15000),
       });
       const data = await res.json();
       if (!res.ok) {
         if (res.status === 401) onSessionExpired();
         throw new Error(data.error);
       }
-      setBase(data);
-      setDraft(data.courses);
       acceptRecord(data);
       setSelected([]);
       setMessage(
-        "Saved. Progress, requirements, and all plans now use this record.",
+        "Saved to the site. Credit Progress, Requirements Overview, existing plans, and Graduation Progress are updated.",
       );
+      return true;
     } catch (e) {
       setError(
         e instanceof Error
           ? e.message
-          : "Unable to save. Your draft is preserved.",
+          : "Unable to save. Your changes are still in the form.",
       );
+      return false;
     } finally {
       setBusy(false);
     }
@@ -120,8 +125,6 @@ export function AcademicEditor({
       return;
     const data = await refresh();
     if (data) {
-      setBase(data);
-      setDraft(data.courses);
       setEditing(null);
       setSelected([]);
       setError("");
@@ -129,6 +132,7 @@ export function AcademicEditor({
     }
   }
   function add() {
+    setEditingRevision(base.revision);
     setEditing({
       id: crypto.randomUUID(),
       school: "udel",
@@ -169,9 +173,9 @@ export function AcademicEditor({
         </Button>
         <Button
           variant="outline"
-          disabled={busy || !!editing || !selected.length}
+          disabled={busy || !!editing || !selected.length || !canSave}
           onClick={() => {
-            setDraft(
+            void save(
               draft.map((c) =>
                 selected.includes(c.id)
                   ? {
@@ -182,31 +186,25 @@ export function AcademicEditor({
                   : c,
               ),
             );
-            setSelected([]);
-            setMessage(
-              "Selected courses marked complete in your draft. Save changes to update the site.",
-            );
           }}
         >
           Complete selected{selected.length > 0 ? ` (${selected.length})` : ""}
         </Button>
         <div className="flex-1" />
-        <span className="text-xs text-slate-500">
-          {dirty ? "Unsaved changes" : "All changes saved"}
+        <span className="text-xs text-slate-500" role="status">
+          {busy
+            ? "Saving to the site…"
+            : editing
+              ? "Editing — save this course below"
+              : "Showing saved coursework"}
         </span>
-        <Button
-          onClick={() => void save()}
-          disabled={!dirty || !!editing || busy || !canSave || !!conflict}
-        >
-          {busy ? "Saving…" : "Save changes"}
-        </Button>
         <Button variant="ghost" onClick={() => void reload()} disabled={busy}>
           Reload record
         </Button>
       </div>
       {!canSave && (
         <p role="alert" className="rounded-lg bg-amber-50 p-3 text-amber-900">
-          Sign in above to save. Your draft is still here.
+          Sign in above to save. Your course edits are still here.
         </p>
       )}
       {conflict && (
@@ -230,7 +228,9 @@ export function AcademicEditor({
           key={editing.id}
           course={editing}
           onCancel={() => setEditing(null)}
-          onApply={(course) => {
+          disabled={busy || !canSave || conflict}
+          saving={busy}
+          onApply={async (course) => {
             const duplicate = draft.some(
               (c) =>
                 !c.archived &&
@@ -240,15 +240,12 @@ export function AcademicEditor({
             );
             if (duplicate)
               return "This course already exists. Edit its existing entry instead.";
-            setDraft((prev) =>
-              prev.some((c) => c.id === course.id)
-                ? prev.map((c) => (c.id === course.id ? course : c))
-                : [...prev, course],
-            );
+            const courses = draft.some((c) => c.id === course.id)
+              ? draft.map((c) => (c.id === course.id ? course : c))
+              : [...draft, course];
+            if (!(await save(courses, editingRevision)))
+              return "Course not saved. Review the message above and try again.";
             setEditing(null);
-            setMessage(
-              "Course updated in your draft. Save changes to update the site.",
-            );
             return null;
           }}
         />
@@ -320,7 +317,11 @@ export function AcademicEditor({
                   variant="outline"
                   size="sm"
                   disabled={busy || !!editing}
-                  onClick={() => setEditing(c)}
+                  onClick={() => {
+                    setEditingRevision(base.revision);
+                    setEditing(c);
+                    setMessage("");
+                  }}
                   aria-label={`Edit ${c.courseCode}`}
                 >
                   Edit
@@ -332,15 +333,14 @@ export function AcademicEditor({
                   onClick={() => {
                     if (
                       window.confirm(
-                        `Remove ${c.courseCode} from the academic record and all progress calculations? Save changes to apply.`,
+                        `Remove ${c.courseCode} from the academic record, all plans, and all progress calculations?`,
                       )
                     ) {
-                      setDraft(
+                      void save(
                         draft.map((row) =>
                           row.id === c.id ? { ...row, archived: true } : row,
                         ),
                       );
-                      setSelected(selected.filter((id) => id !== c.id));
                     }
                   }}
                   aria-label={`Remove ${c.courseCode}`}
@@ -370,9 +370,13 @@ function CourseForm({
   course,
   onApply,
   onCancel,
+  disabled,
+  saving,
 }: {
+  disabled: boolean;
+  saving: boolean;
   course: AcademicCourse;
-  onApply: (course: AcademicCourse) => string | null;
+  onApply: (course: AcademicCourse) => Promise<string | null>;
   onCancel: () => void;
 }) {
   const [value, setValue] = useState(course);
@@ -401,182 +405,187 @@ function CourseForm({
   return (
     <form
       className="space-y-5 rounded-xl border-2 border-blue-200 bg-white p-6 shadow-sm"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
+        if (disabled) return;
         setError(
-          onApply({
+          (await onApply({
             ...value,
             courseCode: value.courseCode
               .trim()
               .toUpperCase()
               .replace(/\s+/g, " "),
             title: value.title.trim(),
-          }) ?? "",
+          })) ?? "",
         );
       }}
     >
-      <h2 className="text-xl font-semibold">
-        {course.courseCode ? `Edit ${course.courseCode}` : "Add a course"}
-      </h2>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <label className="text-sm font-medium">
-          School
-          <select
-            className={selectClass}
-            value={value.school}
-            onChange={(e) => update("school", e.target.value as School)}
-          >
-            <option value="udel">University of Delaware</option>
-            <option value="brookdale">Brookdale</option>
-          </select>
-        </label>
-        <label className="text-sm font-medium">
-          Term
-          <select
-            className={selectClass}
-            value={value.term}
-            onChange={(e) => update("term", e.target.value as Term)}
-          >
-            {["Fall", "Winter", "Spring", "Summer"].map((term) => (
-              <option key={term}>{term}</option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm font-medium">
-          Year
-          <Input
-            className="mt-1"
-            type="number"
-            min="2000"
-            max="2100"
-            required
-            value={value.year}
-            onChange={(e) => update("year", Number(e.target.value))}
-          />
-        </label>
-        <label className="text-sm font-medium">
-          Course code
-          <Input
-            className="mt-1"
-            list="academic-catalog"
-            maxLength={40}
-            required
-            value={value.courseCode}
-            onChange={(e) => chooseCode(e.target.value)}
-            placeholder="e.g. CGSC 170"
-          />
-          <datalist id="academic-catalog">
-            {COURSES.filter((c) => c.school === value.school).map((c) => (
-              <option key={c.id} value={c.courseCode}>
-                {c.title}
-              </option>
-            ))}
-          </datalist>
-        </label>
-        <label className="text-sm font-medium sm:col-span-2">
-          Course title
-          <Input
-            className="mt-1"
-            maxLength={200}
-            required
-            value={value.title}
-            onChange={(e) => update("title", e.target.value)}
-          />
-        </label>
-        <label className="text-sm font-medium">
-          Credits
-          <Input
-            className="mt-1"
-            type="number"
-            min="0"
-            max="30"
-            step="0.1"
-            required
-            value={value.credits}
-            onChange={(e) => update("credits", Number(e.target.value))}
-          />
-        </label>
-        <label className="text-sm font-medium">
-          Status
-          <select
-            className={selectClass}
-            value={value.status}
-            onChange={(e) => update("status", e.target.value as CourseStatus)}
-          >
-            {Object.entries(statusLabels).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm font-medium">
-          Grade (optional)
-          <Input
-            className="mt-1"
-            maxLength={12}
-            value={value.grade ?? ""}
-            onChange={(e) => update("grade", e.target.value)}
-            placeholder="e.g. A, B+, P, T"
-          />
-        </label>
-      </div>
-      <p className="text-xs text-slate-500">
-        Winter uses the year of the preceding Fall: winter break after Fall 2026
-        is Winter 2026.
-      </p>
-      <fieldset className="rounded-lg border p-4">
-        <legend className="px-2 text-sm font-semibold">
-          Requirements this course fulfills
-        </legend>
-        <p className="mb-3 text-sm text-slate-500">
-          Review suggested matches. Select approved substitutions here; leave
-          all unchecked for elective credit only.
+      <fieldset disabled={saving} className="space-y-5">
+        <h2 className="text-xl font-semibold">
+          {course.courseCode ? `Edit ${course.courseCode}` : "Add a course"}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="text-sm font-medium">
+            School
+            <select
+              className={selectClass}
+              value={value.school}
+              onChange={(e) => update("school", e.target.value as School)}
+            >
+              <option value="udel">University of Delaware</option>
+              <option value="brookdale">Brookdale</option>
+            </select>
+          </label>
+          <label className="text-sm font-medium">
+            Term
+            <select
+              className={selectClass}
+              value={value.term}
+              onChange={(e) => update("term", e.target.value as Term)}
+            >
+              {["Fall", "Winter", "Spring", "Summer"].map((term) => (
+                <option key={term}>{term}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm font-medium">
+            Year
+            <Input
+              className="mt-1"
+              type="number"
+              min="2000"
+              max="2100"
+              required
+              value={value.year}
+              onChange={(e) => update("year", Number(e.target.value))}
+            />
+          </label>
+          <label className="text-sm font-medium">
+            Course code
+            <Input
+              className="mt-1"
+              list="academic-catalog"
+              maxLength={40}
+              required
+              value={value.courseCode}
+              onChange={(e) => chooseCode(e.target.value)}
+              placeholder="e.g. CGSC 170"
+            />
+            <datalist id="academic-catalog">
+              {COURSES.filter((c) => c.school === value.school).map((c) => (
+                <option key={c.id} value={c.courseCode}>
+                  {c.title}
+                </option>
+              ))}
+            </datalist>
+          </label>
+          <label className="text-sm font-medium sm:col-span-2">
+            Course title
+            <Input
+              className="mt-1"
+              maxLength={200}
+              required
+              value={value.title}
+              onChange={(e) => update("title", e.target.value)}
+            />
+          </label>
+          <label className="text-sm font-medium">
+            Credits
+            <Input
+              className="mt-1"
+              type="number"
+              min="0"
+              max="30"
+              step="0.1"
+              required
+              value={value.credits}
+              onChange={(e) => update("credits", Number(e.target.value))}
+            />
+          </label>
+          <label className="text-sm font-medium">
+            Status
+            <select
+              className={selectClass}
+              value={value.status}
+              onChange={(e) => update("status", e.target.value as CourseStatus)}
+            >
+              {Object.entries(statusLabels).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm font-medium">
+            Grade (optional)
+            <Input
+              className="mt-1"
+              maxLength={12}
+              value={value.grade ?? ""}
+              onChange={(e) => update("grade", e.target.value)}
+              placeholder="e.g. A, B+, P, T"
+            />
+          </label>
+        </div>
+        <p className="text-xs text-slate-500">
+          Winter uses the year of the preceding Fall: winter break after Fall
+          2026 is Winter 2026.
         </p>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() =>
-            update("fulfillsRequirements", suggestedRequirements(value))
-          }
-        >
-          Suggest matches
-        </Button>
-        <div className="mt-3 grid max-h-64 gap-2 overflow-auto sm:grid-cols-2">
-          {REQUIREMENTS.filter((r) => r.id !== "free-elective").map((r) => (
-            <label key={r.id} className="flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="mt-1"
-                checked={value.fulfillsRequirements?.includes(r.id) ?? false}
-                onChange={(e) =>
-                  update(
-                    "fulfillsRequirements",
-                    e.target.checked
-                      ? [...(value.fulfillsRequirements ?? []), r.id]
-                      : (value.fulfillsRequirements ?? []).filter(
-                          (id) => id !== r.id,
-                        ),
-                  )
-                }
-              />
-              {r.name}
-            </label>
-          ))}
+        <fieldset className="rounded-lg border p-4">
+          <legend className="px-2 text-sm font-semibold">
+            Requirements this course fulfills
+          </legend>
+          <p className="mb-3 text-sm text-slate-500">
+            Review suggested matches. Select approved substitutions here; leave
+            all unchecked for elective credit only.
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              update("fulfillsRequirements", suggestedRequirements(value))
+            }
+          >
+            Suggest matches
+          </Button>
+          <div className="mt-3 grid max-h-64 gap-2 overflow-auto sm:grid-cols-2">
+            {REQUIREMENTS.filter((r) => r.id !== "free-elective").map((r) => (
+              <label key={r.id} className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={value.fulfillsRequirements?.includes(r.id) ?? false}
+                  onChange={(e) =>
+                    update(
+                      "fulfillsRequirements",
+                      e.target.checked
+                        ? [...(value.fulfillsRequirements ?? []), r.id]
+                        : (value.fulfillsRequirements ?? []).filter(
+                            (id) => id !== r.id,
+                          ),
+                    )
+                  }
+                />
+                {r.name}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        {error && (
+          <p role="alert" className="text-sm text-red-700">
+            {error}
+          </p>
+        )}
+        <div className="flex gap-2">
+          <Button type="submit" disabled={disabled}>
+            {saving ? "Saving…" : "Save course"}
+          </Button>
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
         </div>
       </fieldset>
-      {error && (
-        <p role="alert" className="text-sm text-red-700">
-          {error}
-        </p>
-      )}
-      <div className="flex gap-2">
-        <Button type="submit">Apply to draft</Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-      </div>
     </form>
   );
 }
