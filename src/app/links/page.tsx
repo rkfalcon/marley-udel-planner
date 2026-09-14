@@ -1,5 +1,6 @@
 'use client';
 
+import { CATALOG } from '@/lib/data/catalog';
 import { ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -13,29 +14,29 @@ const LINKS = [
   },
   {
     title: 'Cognitive Science (BS)',
-    description: 'Full degree requirements for the Cognitive Science BS major',
-    url: 'https://catalog.udel.edu/preview_program.php?catoid=90&poid=78328',
+    description: '2026–2027 Cognitive Science BS and Speech-Language Pathology concentration',
+    url: CATALOG.program,
     color: 'bg-indigo-50 border-indigo-200 hover:border-indigo-400',
     iconColor: 'text-indigo-600',
   },
   {
-    title: 'PPSLP Specialization',
-    description: 'Pre-Professional Speech-Language Pathology specialization requirements',
-    url: 'https://catalog.udel.edu/preview_program.php?catoid=90&poid=77957',
+    title: 'Speech-Language Pathology Concentration',
+    description: '2026–2027 concentration requirements, included in the complete degree page',
+    url: CATALOG.program,
     color: 'bg-purple-50 border-purple-200 hover:border-purple-400',
     iconColor: 'text-purple-600',
   },
   {
     title: 'CGSC BS — All Specializations Four-Year Plan',
-    description: 'Official four-year plan for all Cognitive Science BS specializations',
-    url: 'https://catalog.udel.edu/content.php?catoid=90&navoid=28042',
+    description: 'Official 2026 four-year plan for Cognitive Science BS concentrations',
+    url: CATALOG.fourYearPlan,
     color: 'bg-violet-50 border-violet-200 hover:border-violet-400',
     iconColor: 'text-violet-600',
   },
   {
     title: 'UD Course Catalog',
-    description: 'Browse all courses offered at the University of Delaware',
-    url: 'https://catalog.udel.edu/content.php?catoid=94&navoid=34643',
+    description: 'Browse the 2026–2027 Undergraduate Catalog',
+    url: CATALOG.courses,
     color: 'bg-sky-50 border-sky-200 hover:border-sky-400',
     iconColor: 'text-sky-600',
   },
@@ -68,7 +69,7 @@ export default function LinksPage() {
       <div className="grid gap-3">
         {LINKS.map((link) => (
           <a
-            key={link.url}
+            key={link.title}
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"

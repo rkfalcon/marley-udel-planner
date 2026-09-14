@@ -23,6 +23,7 @@ export interface Course {
   attributes?: string[];
   prerequisites?: string;
   typicallyOffered?: string;
+  catalogUrl?: string;
   fulfillsRequirements?: string[]; // requirement IDs this course manually fulfills (for cross-listed courses)
 }
 
@@ -47,6 +48,7 @@ export interface Requirement {
   parentId?: string;
   sortOrder: number;
   courseOptions?: string[]; // course codes that can fulfill this
+  courseOptionGroups?: string[][]; // any complete group satisfies a lecture/lab requirement
   isRequired?: boolean; // if true, specific course is mandatory
 }
 

@@ -24,7 +24,7 @@ const CATEGORY_META: Record<
   university: { label: 'University Requirements', shortLabel: 'University', icon: '🎓' },
   college: { label: 'College of Arts & Sciences', shortLabel: 'College', icon: '🏛️' },
   major_core: { label: 'Major Core (CGSC)', shortLabel: 'Major Core', icon: '🧠' },
-  ppslp: { label: 'Pre-Professional SLP', shortLabel: 'PPSLP', icon: '🗣️' },
+  ppslp: { label: 'SLP Concentration', shortLabel: 'SLP', icon: '🗣️' },
   elective: { label: 'Electives', shortLabel: 'Electives', icon: '📚' },
 };
 

@@ -379,7 +379,15 @@ function CourseForm({
   onApply: (course: AcademicCourse) => Promise<string | null>;
   onCancel: () => void;
 }) {
-  const [value, setValue] = useState(course);
+  const [value, setValue] = useState(() => ({
+    ...course,
+    fulfillsRequirements:
+      course.courseCode === "CGSC 350"
+        ? course.fulfillsRequirements?.map((id) =>
+            id === "ppslp-cgsc375" ? "ppslp-cgsc350" : id,
+          )
+        : course.fulfillsRequirements,
+  }));
   const [error, setError] = useState("");
   const update = <K extends keyof AcademicCourse>(
     key: K,
@@ -402,6 +410,9 @@ function CourseForm({
         : {}),
     }));
   }
+  const catalogCourse = COURSES.find(
+    (c) => c.school === value.school && c.courseCode === value.courseCode,
+  );
   return (
     <form
       className="space-y-5 rounded-xl border-2 border-blue-200 bg-white p-6 shadow-sm"
@@ -479,6 +490,21 @@ function CourseForm({
               ))}
             </datalist>
           </label>
+          {catalogCourse && (
+            <p className="text-xs text-slate-600 sm:col-span-2">
+              {catalogCourse.description}{" "}
+              {catalogCourse.catalogUrl && (
+                <a
+                  href={catalogCourse.catalogUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-700 underline"
+                >
+                  View 2026–2027 catalog entry
+                </a>
+              )}
+            </p>
+          )}
           <label className="text-sm font-medium sm:col-span-2">
             Course title
             <Input

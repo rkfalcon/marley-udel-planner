@@ -2,6 +2,7 @@
 
 import { useAcademicRecord } from '@/components/academic/academic-record-provider';
 import { creditTotals } from '@/lib/academic-record';
+import { CATALOG } from '@/lib/data/catalog';
 import { MARLEY_PROFILE } from '@/lib/data/marley-progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { RequirementCategory } from '@/components/requirements/requirement-category';
@@ -46,8 +47,13 @@ export default function RequirementsPage() {
       <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">Degree Requirements</h1>
         <p className="text-sm text-muted-foreground">
-          Cognitive Science BS &mdash; PPSLP Specialization
+          Cognitive Science BS &mdash; Speech-Language Pathology Concentration
         </p>
+      </div>
+
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-slate-700">
+        <a className="font-semibold text-blue-800 underline" href={CATALOG.program} target="_blank" rel="noopener noreferrer">2026–2027 Undergraduate Catalog</a>
+        <p className="mt-1">Planning requirements use this catalog. Confirm Marley’s official catalog year and approved substitutions in UDel’s degree audit with her advisor. Major, concentration, writing, and breadth requirements generally require C- or better; second language and college mathematics require D- or better. Second Writing also requires 60 prior earned credits and a designated section.</p>
       </div>
 
       {/* Overall progress summary */}

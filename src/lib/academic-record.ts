@@ -89,7 +89,10 @@ export function validateCourses(value: unknown): AcademicCourse[] {
       c.fulfillsRequirements !== undefined &&
       (!Array.isArray(c.fulfillsRequirements) ||
         c.fulfillsRequirements.some(
-          (r) => typeof r !== "string" || !requirements.has(r),
+          (r) =>
+            typeof r !== "string" ||
+            (!requirements.has(r) &&
+              !["ppslp-cgsc375", "ppslp-cgsc376"].includes(r)),
         ))
     )
       throw new Error("Unknown requirement.");

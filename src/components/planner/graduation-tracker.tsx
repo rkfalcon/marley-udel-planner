@@ -33,7 +33,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   university: 'University Reqs',
   college: 'College of A&S',
   major_core: 'Major Core',
-  ppslp: 'PPSLP Specialization',
+  ppslp: 'SLP Concentration',
   elective: 'Electives',
 };
 

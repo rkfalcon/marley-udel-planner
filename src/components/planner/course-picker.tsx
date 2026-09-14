@@ -1,5 +1,7 @@
 'use client';
 
+import { CATALOG } from '@/lib/data/catalog';
+
 import { useState, useMemo } from 'react';
 import {
   Search, ChevronDown, ChevronRight, CheckCircle2, Circle,
@@ -448,13 +450,13 @@ function SecondWritingCustomEntry({
       {expanded && (
         <div className="border-t border-blue-200 px-3 py-2.5 space-y-2 bg-blue-50/40">
           <a
-            href="https://catalog.udel.edu/preview_program.php?catoid=90&poid=78217"
+            href={CATALOG.secondWriting}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-[11px] font-medium text-blue-600 hover:text-blue-800 hover:underline"
           >
             <ExternalLink className="h-3 w-3" />
-            View full list of 385 approved courses at UDel Catalog
+            View the 2026–2027 eligible courses and section requirements
           </a>
           <p className="text-[10px] text-slate-500">
             Find a course from the link above, then enter it here:
