@@ -215,7 +215,7 @@ function CourseButton({
               'text-[10px] px-1.5 h-4 py-0 font-semibold border',
               isBrookdale ? 'border-emerald-200 text-emerald-600 bg-emerald-50' : 'border-blue-200 text-blue-600 bg-blue-50',
             )}>
-              {course.credits} cr
+              {course.creditsUnspecified ? "Enter credits" : `${course.credits} cr`}
             </Badge>
             {isPlanned && (
               <Badge className="text-[10px] px-1.5 h-4 py-0 bg-blue-100 text-blue-600 border-0">In plan</Badge>
@@ -713,6 +713,8 @@ export function CoursePicker({
   const { requirementsWithStatus } = useRequirements(planCourses);
   const fulfilledReqIds = new Set(requirementsWithStatus.filter(r => r.projectedFulfilled).map(r => r.id));
   const [query, setQuery] = useState('');
+  const [creditEntryCourse, setCreditEntryCourse] = useState<Course | null>(null);
+  const [enteredCredits, setEnteredCredits] = useState('');
   const [activeSchool, setActiveSchool] = useState<'udel' | 'brookdale'>(semesterSchool);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [expandedReqs, setExpandedReqs] = useState<Set<string>>(new Set());
@@ -720,6 +722,7 @@ export function CoursePicker({
   // Reset state when school changes
   const handleSchoolChange = (school: 'udel' | 'brookdale') => {
     setActiveSchool(school);
+    setCreditEntryCourse(null);
     setExpandedSections(new Set());
     setExpandedReqs(new Set());
   };
@@ -759,6 +762,11 @@ export function CoursePicker({
   };
 
   const handleSelect = (course: Course) => {
+    if (course.creditsUnspecified) {
+      setCreditEntryCourse(course);
+      setEnteredCredits('');
+      return;
+    }
     onSelectCourse(course);
     // Don't close — let user add multiple courses
   };
@@ -771,7 +779,7 @@ export function CoursePicker({
   const isSearching = query.length > 0;
 
   return (
-    <Sheet open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) { setQuery(''); setExpandedSections(new Set()); setExpandedReqs(new Set()); } }}>
+    <Sheet open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) { setCreditEntryCourse(null); setQuery(''); setExpandedSections(new Set()); setExpandedReqs(new Set()); } }}>
       <SheetContent side="right" className="w-full sm:w-[480px] p-0 flex flex-col">
         <SheetHeader className="px-5 pt-5 pb-4 border-b border-slate-100">
           <SheetTitle className="text-lg font-bold text-slate-800">Add Course</SheetTitle>
@@ -782,6 +790,22 @@ export function CoursePicker({
           )}
         </SheetHeader>
 
+        {creditEntryCourse && (
+          <form className="mx-5 mt-4 rounded-lg border p-3 space-y-2" onSubmit={e => {
+            e.preventDefault();
+            const credits = Number(enteredCredits);
+            if (!enteredCredits || !Number.isFinite(credits) || credits < 0 || credits > 30) return;
+            onSelectCourse({ ...creditEntryCourse, credits, creditsUnspecified: false });
+            setCreditEntryCourse(null);
+          }}>
+            <p className="text-sm">The catalog does not list credits for {creditEntryCourse.courseCode}. Enter the enrolled credits.</p>
+            <label className="text-sm">Credits
+              <input className="ml-2 w-20 rounded border p-1" type="number" min="0" max="30" step="0.1" required value={enteredCredits} onChange={e => setEnteredCredits(e.target.value)} />
+            </label>
+            <button type="submit" className="ml-2 rounded bg-blue-600 px-3 py-1 text-white">Add course</button>
+            <button type="button" className="ml-2" onClick={() => setCreditEntryCourse(null)}>Cancel</button>
+          </form>
+        )}
         <div className="px-5 pt-4 pb-3 space-y-3">
           {/* School toggle */}
           <div className="flex rounded-lg bg-slate-100 p-1 gap-1">

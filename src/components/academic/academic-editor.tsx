@@ -394,10 +394,14 @@ function CourseForm({
     key: K,
     next: AcademicCourse[K],
   ) => setValue((prev) => ({ ...prev, [key]: next }));
+  const [creditsConfirmed, setCreditsConfirmed] = useState(true);
   function chooseCode(code: string) {
     const found = COURSES.find(
-      (c) => c.school === value.school && c.courseCode === code.toUpperCase(),
+      (c) =>
+        c.school === value.school &&
+        c.courseCode === code.trim().toUpperCase().replace(/\s+/g, " "),
     );
+    setCreditsConfirmed(!found?.creditsUnspecified);
     setValue((prev) => ({
       ...prev,
       courseCode: code.toUpperCase(),
@@ -412,7 +416,10 @@ function CourseForm({
     }));
   }
   const catalogCourse = COURSES.find(
-    (c) => c.school === value.school && c.courseCode === value.courseCode,
+    (c) =>
+      c.school === value.school &&
+      c.courseCode ===
+        value.courseCode.trim().toUpperCase().replace(/\s+/g, " "),
   );
   return (
     <form
@@ -420,6 +427,12 @@ function CourseForm({
       onSubmit={async (e) => {
         e.preventDefault();
         if (disabled) return;
+        if (catalogCourse?.creditsUnspecified && !creditsConfirmed) {
+          setError(
+            "Enter the enrolled credits; the catalog does not specify them.",
+          );
+          return;
+        }
         setError(
           (await onApply({
             ...value,
@@ -525,8 +538,11 @@ function CourseForm({
               max="30"
               step="0.1"
               required
-              value={value.credits}
-              onChange={(e) => update("credits", Number(e.target.value))}
+              value={creditsConfirmed ? value.credits : ""}
+              onChange={(e) => {
+                setCreditsConfirmed(e.target.value !== "");
+                update("credits", Number(e.target.value));
+              }}
             />
           </label>
           <label className="text-sm font-medium">

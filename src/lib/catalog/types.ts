@@ -16,6 +16,7 @@ export interface CatalogJob {
   source: CatalogSource;
   pages: string[];
   visited: string[];
+  expandedPages?: string[];
   prefixes: string[];
   links: Record<string, string>;
   courses: Course[];

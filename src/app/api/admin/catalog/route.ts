@@ -11,7 +11,7 @@ import {
   readSnapshot,
   saveState,
 } from "@/lib/catalog/store";
-import { syncCatalog } from "@/lib/catalog/sync";
+import { syncCatalogInBrowser as syncCatalog } from "@/lib/catalog/browser-sync";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 export async function GET(request: Request) {

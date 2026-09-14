@@ -5,6 +5,7 @@ import {
   discoverProgramLinks,
   fetchSource,
   parseCourse,
+  parseExpandedCourses,
   parseDocument,
   parseIndex,
   validateCatalog,
@@ -26,11 +27,14 @@ export function shouldCheck(
       Date.parse(state.nextCheck) <= now)
   );
 }
-async function checkRequirements(state: CatalogState) {
+async function checkRequirements(
+  state: CatalogState,
+  readSource: (url: string) => Promise<string>,
+) {
   const urls = [CATALOG.program, CATALOG.secondWriting];
   if (state.job!.source.id !== "97") {
     const newUrls = discoverProgramLinks(
-      await fetchSource(state.job!.source.programs),
+      await readSource(state.job!.source.programs),
       state.job!.source.id,
     );
     if (newUrls.length < 2)
@@ -41,7 +45,7 @@ async function checkRequirements(state: CatalogState) {
   }
   const documents: SourceDocument[] = [];
   for (const url of [...new Set(urls)])
-    documents.push(parseDocument(await fetchSource(url), url));
+    documents.push(parseDocument(await readSource(url), url));
   const old = state.requirements?.documents;
   const changed =
     !!state.requirements?.changed ||
@@ -60,7 +64,12 @@ async function checkRequirements(state: CatalogState) {
       : "Official sources checked. Assigned planning rules remain 2026–2027; new catalog years never switch them automatically.",
   };
 }
-export async function syncCatalog(force = false, budgetMs = 230000) {
+export async function syncCatalog(
+  force = false,
+  budgetMs = 230000,
+  readSource = fetchSource,
+  bulkDetails = false,
+) {
   const lease = await claimCatalog();
   if (!lease) return { status: "busy" };
   const { token, state } = lease;
@@ -74,7 +83,7 @@ export async function syncCatalog(force = false, budgetMs = 230000) {
     delete state.error;
     if (!state.job) {
       const source = discoverCatalog(
-        await fetchSource("https://catalog.udel.edu/"),
+        await readSource("https://catalog.udel.edu/"),
       );
       state.job = {
         source,
@@ -93,7 +102,7 @@ export async function syncCatalog(force = false, budgetMs = 230000) {
       force
     ) {
       try {
-        await checkRequirements(state);
+        await checkRequirements(state, readSource);
         delete state.requirementsError;
       } catch (e) {
         state.requirementsError =
@@ -102,9 +111,13 @@ export async function syncCatalog(force = false, budgetMs = 230000) {
       await saveState(state, token);
     }
     const job = state.job;
+    // Print links duplicate listings and can recursively multiply the page queue.
+    job.pages = job.pages.filter(
+      (page) => !new URL(page).searchParams.has("print"),
+    );
     while (job.pages.length && Date.now() < deadline - 20000) {
       const page = job.pages[0];
-      const parsed = parseIndex(await fetchSource(page), job.source);
+      const parsed = parseIndex(await readSource(page), job.source);
       for (const [code, url] of Object.entries(parsed.links)) {
         if (job.links[code] && job.links[code] !== url)
           throw new Error(`Conflicting course identity: ${code}.`);
@@ -121,16 +134,70 @@ export async function syncCatalog(force = false, budgetMs = 230000) {
       await saveState(state, token);
     }
     if (!job.pages.length) {
+      if (bulkDetails) {
+        job.expandedPages ??= [
+          ...new Set(
+            job.visited
+              .filter((page) => !new URL(page).searchParams.has("print"))
+              .map((page) => {
+                const url = new URL(job.source.courses);
+                url.searchParams.set(
+                  "filter[cpage]",
+                  new URL(page).searchParams.get("filter[cpage]") || "1",
+                );
+                url.searchParams.set("print", "");
+                url.searchParams.set("expand", "1");
+                return url.href;
+              }),
+          ),
+        ];
+        const imported = new Set(
+          job.courses.map((course) => course.courseCode),
+        );
+        while (job.expandedPages.length && Date.now() < deadline - 20000) {
+          const batch = job.expandedPages.slice(0, 4);
+          const results = await Promise.allSettled(
+            batch.map(async (page) =>
+              parseExpandedCourses(
+                await readSource(page),
+                job.source,
+                job.links,
+              ),
+            ),
+          );
+          let failed: unknown;
+          for (const [index, result] of results.entries()) {
+            if (result.status === "rejected") {
+              failed = result.reason;
+              continue;
+            }
+            for (const course of result.value)
+              if (!imported.has(course.courseCode)) {
+                job.courses.push(course);
+                imported.add(course.courseCode);
+              }
+            job.expandedPages = job.expandedPages.filter(
+              (page) => page !== batch[index],
+            );
+          }
+          await saveState(state, token);
+          if (failed) throw failed;
+        }
+      }
       const done = new Set(job.courses.map((c) => c.courseCode));
       const pending = Object.entries(job.links).filter(
         ([code]) => !done.has(code),
       );
-      while (pending.length && Date.now() < deadline - 20000) {
+      while (
+        !job.expandedPages?.length &&
+        pending.length &&
+        Date.now() < deadline - 20000
+      ) {
         // Small batches bound source load and preserve completed work across retries.
         const batch = pending.splice(0, 4);
         const results = await Promise.allSettled(
           batch.map(async ([code, url]) =>
-            parseCourse(await fetchSource(url), url, code),
+            parseCourse(await readSource(url), url, code),
           ),
         );
         let failed: string | undefined;

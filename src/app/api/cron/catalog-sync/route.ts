@@ -1,4 +1,4 @@
-import { syncCatalog } from "@/lib/catalog/sync";
+import { syncCatalogInBrowser as syncCatalog } from "@/lib/catalog/browser-sync";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 export async function GET(request: Request) {

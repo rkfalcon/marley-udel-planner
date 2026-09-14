@@ -4,6 +4,8 @@ import { createServer } from "node:http";
 import {
   discoverCatalog,
   parseCourse,
+  parseExpandedCourses,
+  fetchSource,
   parseIndex,
   sourceUrl,
   validateCatalog,
@@ -137,6 +139,12 @@ test("worker resumes, publishes atomically, preserves good data on source failur
     if (blocked) return new Response("", { status: 202 });
     const u = new URL(url);
     if (u.pathname === "/") return new Response(home);
+    if (u.pathname === "/content.php" && u.searchParams.has("expand"))
+      return new Response(
+        shell(
+          `<span id="acalog-catalog-name">2026-2027 Undergraduate Catalog</span><ul>${codes.map((code) => `<li><h3>${code} - Test course</h3><strong>Credit(s):</strong> 3</li>`).join("")}</ul>`,
+        ),
+      );
     if (u.pathname === "/content.php") return new Response(index);
     if (u.pathname === "/preview_course_nopop.php")
       return new Response(
@@ -156,7 +164,10 @@ test("worker resumes, publishes atomically, preserves good data on source failur
         assert.equal((await syncCatalog(true, 0)).status, "in_progress");
         assert.ok(state.job);
         assert.equal(versions.length, 0);
-        assert.equal((await syncCatalog(true, 60000)).status, "published");
+        assert.equal(
+          (await syncCatalog(true, 60000, fetchSource, true)).status,
+          "published",
+        );
         assert.equal(versions.length, 1);
         assert.equal(state.courseCount, 1000);
         assert.equal(state.job, undefined);
@@ -275,4 +286,66 @@ test("worker resumes, publishes atomically, preserves good data on source failur
     globalThis.fetch = originalFetch;
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
+});
+
+test("course listing ignores recursive print-friendly pagination", () => {
+  const links = `<a href="content.php?catoid=97&amp;filter%5Bcpage%5D=2">2</a><a href="content.php?catoid=97&amp;filter%5Bcpage%5D=2&amp;print=&amp;expand=1">Print</a>`;
+  const parsed = parseIndex(index + links, source);
+  assert.equal(parsed.pages.length, 1);
+  assert.equal(new URL(parsed.pages[0]).searchParams.has("print"), false);
+});
+
+test("expanded details retain official course identity and reject unknown courses or years", () => {
+  const body = `<span id="acalog-catalog-name">2026-2027 Undergraduate Catalog</span><ul><li><h3>AA 100 - Test course</h3><strong>Credit(s):</strong> 3</li></ul>`;
+  const links = {
+    "AA 100": `${root}/preview_course_nopop.php?catoid=97&coid=1`,
+  };
+  const courses = parseExpandedCourses(body, source, links);
+  assert.equal(courses[0].catalogUrl, links["AA 100"]);
+  assert.equal(courses[0].credits, 3);
+  assert.throws(
+    () => parseExpandedCourses(body, source, {}),
+    /unknown or duplicate/,
+  );
+  assert.throws(
+    () =>
+      parseExpandedCourses(
+        body.replace("2026-2027", "2025-2026"),
+        source,
+        links,
+      ),
+    /different catalog year/,
+  );
+});
+
+test("catalog omissions are distinct from zero credits and malformed credit values", () => {
+  const url = `${root}/preview_course_nopop.php?catoid=97&coid=1`;
+  const missing = courseHtml("AA 100").replace(
+    "<strong>Credit(s):</strong> 3",
+    "",
+  );
+  const course = parseCourse(missing, url, "AA 100");
+  assert.equal(course.creditsUnspecified, true);
+  assert.match(course.description!, /does not state numeric credits/);
+  assert.equal(
+    parseCourse(courseHtml("AA 100", "0"), url, "AA 100").creditsUnspecified,
+    undefined,
+  );
+  assert.equal(
+    parseCourse(courseHtml("AA 100", "Group Dynamics"), url, "AA 100")
+      .creditsUnspecified,
+    true,
+  );
+  assert.throws(
+    () => parseCourse(courseHtml("AA 100", "99"), url, "AA 100"),
+    /invalid credits/,
+  );
+  assert.throws(
+    () =>
+      validateCatalog(
+        codes.map((courseCode) => ({ ...course, courseCode })),
+        prefixes,
+      ),
+    /Too many/,
+  );
 });

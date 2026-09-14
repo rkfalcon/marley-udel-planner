@@ -89,8 +89,10 @@ export function parseIndex(html: string, source: CatalogSource) {
         throw new Error(`Conflicting catalog entries for ${code}.`);
       links[code] = url;
     }
-    if (href.includes("cpage") && href.includes("content.php"))
-      pages.push(sourceUrl(href));
+    if (href.includes("cpage") && href.includes("content.php")) {
+      const url = sourceUrl(href);
+      if (!new URL(url).searchParams.has("print")) pages.push(url);
+    }
   });
   if (!Object.keys(links).length)
     throw new Error("Empty course listing; import stopped.");
@@ -117,7 +119,7 @@ export function parseCourse(
   const credit = text.match(
     /Credit\(s\):\s*(\d+(?:\.\d+)?)(?:\s*[-–]\s*(\d+(?:\.\d+)?))?/,
   );
-  if (!credit || +credit[1] > 30 || (credit[2] && +credit[2] > 30))
+  if (credit && (+credit[1] > 30 || (credit[2] && +credit[2] > 30)))
     throw new Error(`Missing or invalid credits for ${expectedCode}.`);
   const field = (label: string) => {
     const strong = content
@@ -145,10 +147,14 @@ export function parseCourse(
     school: "udel",
     courseCode: expectedCode,
     title: normalized.slice(prefix.length),
-    credits: +credit[1],
+    credits: credit ? +credit[1] : 0,
+    ...(!credit ? { creditsUnspecified: true } : {}),
     catalogUrl: sourceUrl(url),
     description: [
-      credit[2]
+      !credit
+        ? `The catalog does not state numeric credits. Enter enrolled credits when adding this course.${text.includes("Credit(s):") ? ` Source credit field: ${clean(text.match(/Credit\(s\):([^\n]*)/)?.[1] || "").slice(0, 100)}.` : ""}`
+        : "",
+      credit?.[2]
         ? `Variable credits: ${credit[1]}–${credit[2]}. Enter enrolled credits.`
         : "",
       description,
@@ -181,6 +187,44 @@ export function parseDocument(html: string, url: string): SourceDocument {
     hash: createHash("sha256").update(text).digest("hex"),
   };
 }
+
+/** UDel's expanded print view contains full details for every course on a listing page. */
+export function parseExpandedCourses(
+  html: string,
+  source: CatalogSource,
+  links: Record<string, string>,
+): Course[] {
+  const $ = load(html);
+  if (
+    !$("#acalog-catalog-name, .acalog_catalog_name")
+      .first()
+      .text()
+      .includes(source.year)
+  )
+    throw new Error("Expanded courses belong to a different catalog year.");
+  const courses: Course[] = [];
+  const seen = new Set<string>();
+  $("h3").each((_, heading) => {
+    const code = clean($(heading).text()).match(
+      /^([A-Z]{2,6} \d{3}[A-Z]*)\s*[-–]/,
+    )?.[1];
+    if (!code) return;
+    if (!links[code] || seen.has(code))
+      throw new Error("Expanded listing has an unknown or duplicate course.");
+    seen.add(code);
+    const block = $(heading).parent().clone();
+    block.find("h3").attr("id", "course_preview_title");
+    courses.push(
+      parseCourse(
+        `<table><tr><td class="block_content">${block.html()}</td></tr></table>`,
+        links[code],
+        code,
+      ),
+    );
+  });
+  if (!courses.length) throw new Error("Expanded course listing is empty.");
+  return courses;
+}
 export function discoverProgramLinks(html: string, id: string): string[] {
   const $ = load(html);
   return [
@@ -204,6 +248,13 @@ export function validateCatalog(
 ) {
   if (courses.length < 1000 || prefixes.length < 50)
     throw new Error("Catalog is incomplete: too few courses or departments.");
+  if (
+    courses.filter((course) => course.creditsUnspecified).length >
+    courses.length * 0.05
+  )
+    throw new Error(
+      "Too many courses have unspecified credits; catalog format review required.",
+    );
   const codes = new Set(courses.map((c) => c.courseCode));
   if (codes.size !== courses.length)
     throw new Error("Duplicate course codes in import.");

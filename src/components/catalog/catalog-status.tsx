@@ -64,7 +64,7 @@ export function CatalogStatus() {
       <h2 className="text-lg font-semibold">Automatic catalog updates</h2>
       <p className="text-sm text-slate-600">
         Checks for a complete undergraduate catalog weekly. Unfinished checks
-        retry daily. Assigned degree requirements stay on the reviewed 2026–2027
+        resume automatically every ten minutes. Assigned degree requirements stay on the reviewed 2026–2027
         planning catalog.
       </p>
       {status && (

@@ -19,6 +19,7 @@ export interface Course {
   courseCode: string;
   title: string;
   credits: number;
+  creditsUnspecified?: boolean; // Catalog omits credits; enrolled credits must be entered.
   description?: string;
   attributes?: string[];
   prerequisites?: string;

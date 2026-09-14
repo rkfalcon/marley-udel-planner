@@ -296,4 +296,63 @@ test("admin saves persist immediately and update shared progress and existing pl
       }
     },
   );
+  await t.test(
+    "courses with unspecified catalog credits require enrolled credits before saving",
+    async () => {
+      const { COURSES } = await import("../src/lib/data/courses");
+      COURSES.push({
+        id: "unknown-credit-test",
+        school: "udel",
+        courseCode: "GBUS 364",
+        title: "Internship",
+        credits: 0,
+        creditsUnspecified: true,
+      });
+      const root = await mount();
+      try {
+        await act(async () =>
+          root.root
+            .findAllByType("button")
+            .find((n) => nodeText(n) === "Add course")!
+            .props.onClick(),
+        );
+        await act(async () =>
+          root.root
+            .findAllByType("input")
+            .find((n) => n.props.list === "academic-catalog")!
+            .props.onChange({
+              target: { value: " GBUS  364 " },
+              currentTarget: { value: " GBUS  364 " },
+              nativeEvent: new Event("change"),
+            }),
+        );
+        await act(async () =>
+          root.root.findByType("form").props.onSubmit({ preventDefault() {} }),
+        );
+        assert.equal(writes!, 0);
+        assert.match(nodeText(root.root), /Enter the enrolled credits/);
+        await act(async () =>
+          root.root
+            .findAllByType("input")
+            .find((n) => n.props.max === "30")!
+            .props.onChange({
+              target: { value: "3" },
+              currentTarget: { value: "3" },
+              nativeEvent: new Event("change"),
+            }),
+        );
+        await act(async () =>
+          root.root.findByType("form").props.onSubmit({ preventDefault() {} }),
+        );
+        assert.equal(writes!, 1);
+        assert.equal(
+          memory!.courses.find((c) => c.courseCode === "GBUS 364")?.credits,
+          3,
+        );
+      } finally {
+        COURSES.pop();
+        await act(async () => root.unmount());
+      }
+    },
+  );
 });
