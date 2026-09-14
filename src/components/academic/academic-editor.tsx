@@ -8,7 +8,7 @@ import {
   type AcademicCourse,
   type AcademicRecord,
 } from "@/lib/academic-record";
-import { COURSES } from "@/lib/data/courses";
+import { useCatalog } from "@/components/catalog/catalog-provider";
 import { REQUIREMENTS } from "@/lib/data/requirements";
 import { suggestedRequirements } from "@/lib/requirement-evaluation";
 import { Button } from "@/components/ui/button";
@@ -379,6 +379,7 @@ function CourseForm({
   onApply: (course: AcademicCourse) => Promise<string | null>;
   onCancel: () => void;
 }) {
+  const { courses: COURSES } = useCatalog();
   const [value, setValue] = useState(() => ({
     ...course,
     fulfillsRequirements:
@@ -500,7 +501,7 @@ function CourseForm({
                   rel="noopener noreferrer"
                   className="text-blue-700 underline"
                 >
-                  View 2026–2027 catalog entry
+                  View official catalog entry
                 </a>
               )}
             </p>

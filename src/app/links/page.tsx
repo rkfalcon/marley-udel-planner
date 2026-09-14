@@ -1,5 +1,6 @@
 'use client';
 
+import { useCatalog } from '@/components/catalog/catalog-provider';
 import { CATALOG } from '@/lib/data/catalog';
 import { ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -57,6 +58,8 @@ const LINKS = [
 ];
 
 export default function LinksPage() {
+  const { source } = useCatalog();
+  const links = LINKS.map(link => source && link.title === "UD Course Catalog" ? { ...link, url: source.courses, description: `Browse the ${source.year} Undergraduate Catalog` } : link);
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 space-y-6">
       <div className="space-y-1">
@@ -67,7 +70,7 @@ export default function LinksPage() {
       </div>
 
       <div className="grid gap-3">
-        {LINKS.map((link) => (
+        {links.map((link) => (
           <a
             key={link.title}
             href={link.url}

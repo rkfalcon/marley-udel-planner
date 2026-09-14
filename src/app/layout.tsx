@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { CatalogProvider } from "@/components/catalog/catalog-provider";
 import { AcademicRecordProvider } from "@/components/academic/academic-record-provider";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +30,7 @@ export default function RootLayout({
         <TooltipProvider>
           <Header />
           <main className="flex-1">
-            <div className="max-w-7xl mx-auto px-4 py-8"><AcademicRecordProvider>{children}</AcademicRecordProvider></div>
+            <div className="max-w-7xl mx-auto px-4 py-8"><CatalogProvider><AcademicRecordProvider>{children}</AcademicRecordProvider></CatalogProvider></div>
           </main>
           <Footer />
         </TooltipProvider>

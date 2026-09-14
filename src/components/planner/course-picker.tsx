@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from '@/components/ui/sheet';
-import { COURSES } from '@/lib/data/courses';
+import { useCatalog } from '@/components/catalog/catalog-provider';
 import { REQUIREMENTS, REQUIREMENT_GROUPS } from '@/lib/data/requirements';
 import { TRANSFER_MAPPINGS } from '@/lib/data/transfer-mappings';
 import { useAcademicRecord } from '@/components/academic/academic-record-provider';
@@ -34,7 +34,7 @@ interface CoursePickerProps {
 }
 
 // Build a structured list of requirements with their course options
-function buildRequirementSections(school: 'udel' | 'brookdale', query: string, evaluated: RequirementWithStatus[], totalPlanCredits: number = 0) {
+function buildRequirementSections(school: 'udel' | 'brookdale', query: string, evaluated: RequirementWithStatus[], totalPlanCredits: number = 0, COURSES: Course[] = []) {
   const q = query.toLowerCase();
   // Group requirements by category
   const sections: {
@@ -64,15 +64,9 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, e
 
       // Special handling for Second Writing — use curated list
       if (req.id === 'second-writing' && school === 'udel') {
-        courses = SECOND_WRITING_COURSES.map(sw => ({
-          id: `sw-${sw.code.replace(/\s/g, '-')}`,
-          school: 'udel' as const,
-          courseCode: sw.code,
-          title: sw.title,
-          credits: sw.credits,
-          attributes: ['CAS Second Writing'],
-          typicallyOffered: 'Fall, Spring',
-        }));
+        courses = SECOND_WRITING_COURSES
+          .map(sw => COURSES.find(c => c.school === 'udel' && c.courseCode === sw.code))
+          .filter((c): c is Course => c !== undefined);
       } else if (req.courseOptions && req.courseOptions.length > 0) {
         if (school === 'udel') {
           courses = req.courseOptions
@@ -156,7 +150,7 @@ function buildRequirementSections(school: 'udel' | 'brookdale', query: string, e
 }
 
 // Get extra elective courses not in any requirement
-function getElectiveCourses(school: 'udel' | 'brookdale', query: string): Course[] {
+function getElectiveCourses(school: 'udel' | 'brookdale', query: string, COURSES: Course[]): Course[] {
   const reqCourseCodes = new Set<string>();
   for (const req of REQUIREMENTS) {
     if (req.courseOptions) {
@@ -714,6 +708,7 @@ export function CoursePicker({
   plannedCourseCodes = [],
   totalPlanCredits = 0,
 }: CoursePickerProps) {
+  const { courses: COURSES } = useCatalog();
   const { courses } = useAcademicRecord();
   const { requirementsWithStatus } = useRequirements(planCourses);
   const fulfilledReqIds = new Set(requirementsWithStatus.filter(r => r.projectedFulfilled).map(r => r.id));
@@ -736,13 +731,13 @@ export function CoursePicker({
   const plannedSet = useMemo(() => new Set(plannedCourseCodes), [plannedCourseCodes]);
 
   const sections = useMemo(
-    () => buildRequirementSections(activeSchool, query, requirementsWithStatus, totalPlanCredits || 0),
-    [activeSchool, query, requirementsWithStatus, totalPlanCredits]
+    () => buildRequirementSections(activeSchool, query, requirementsWithStatus, totalPlanCredits || 0, COURSES),
+    [activeSchool, query, requirementsWithStatus, totalPlanCredits, COURSES]
   );
 
   const electiveCourses = useMemo(
-    () => getElectiveCourses(activeSchool, query),
-    [activeSchool, query]
+    () => getElectiveCourses(activeSchool, query, COURSES),
+    [activeSchool, query, COURSES]
   );
 
   const toggleSection = (category: string) => {

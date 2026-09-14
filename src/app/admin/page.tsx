@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useAcademicRecord } from "@/components/academic/academic-record-provider";
+import { CatalogStatus } from "@/components/catalog/catalog-status";
 import { AcademicEditor } from "@/components/academic/academic-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,6 +119,7 @@ export default function AdminPage() {
           {error}
         </p>
       )}
+      {admin && <CatalogStatus />}
       {authorizedOnce && record && (
         <AcademicEditor
           initialRecord={record}
