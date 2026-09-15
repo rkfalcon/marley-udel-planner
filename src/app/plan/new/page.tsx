@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { acceleratedSlpTerms, extendAcceleratedSlpPlan } from '@/lib/accelerated-slp';
 import { usePlan } from '@/hooks/use-plan';
 
 const GRADUATION_OPTIONS = [
@@ -99,7 +100,13 @@ export default function NewPlanPage() {
   const [isEarlyGraduation, setIsEarlyGraduation] = useState(false);
   const [error, setError] = useState('');
 
-  const futureSemesters = SEMESTER_PREVIEWS[targetGraduation] || [];
+  const baseSemesters = SEMESTER_PREVIEWS[targetGraduation] || [];
+  const futureSemesters = accelerated ? [
+    ...baseSemesters,
+    ...acceleratedSlpTerms(2025)
+      .filter(term => !baseSemesters.some(s => s.term === term.term && s.year === term.year && s.school === 'UDel'))
+      .map(term => ({ ...term, school: 'UDel' })),
+  ] : baseSemesters;
 
   const handleCreate = async () => {
     if (!name.trim()) {
@@ -110,8 +117,8 @@ export default function NewPlanPage() {
     setError('');
     setCreating(true);
 
-    const plan = createPlan(name.trim(), targetGraduation, isEarlyGraduation);
-    if (accelerated) plan.acceleratedSlp = { entryYear: 2025 };
+    let plan = createPlan(name.trim(), targetGraduation, isEarlyGraduation);
+    if (accelerated) plan = extendAcceleratedSlpPlan({...plan, acceleratedSlp: { entryYear: 2025 }});
     // Save to database immediately so the plan page can load it
     try {
       const response = await fetch('/api/plans', {
@@ -155,7 +162,7 @@ export default function NewPlanPage() {
           <CardContent className="space-y-6">
             <label className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
               <input type="checkbox" className="mt-1" checked={accelerated} onChange={e => {setAccelerated(e.target.checked); if(e.target.checked){setTargetGraduation('Spring 2028');setIsEarlyGraduation(true);if(!name)setName('Marley 3+2 SLP Pathway');}}} />
-              <span><strong className="block">3+2 accelerated SLP pathway (BS → MA)</strong><span className="text-sm">Track 109 credits and major completion by Spring 2028, GPA requirements and application milestones. Based on a Fall 2025 start; editable in the plan.</span></span>
+              <span><strong className="block">3+2 accelerated SLP pathway (BS → MA)</strong><span className="text-sm">Track 109 credits and major completion by Spring 2028, GPA requirements and application milestones. Includes UDel semesters through Winter 2030. Based on a Fall 2025 start; editable in the plan.</span></span>
             </label>
             {/* Plan name */}
             <div className="space-y-2">
@@ -323,7 +330,7 @@ export default function NewPlanPage() {
               </div>
 
               <p className="text-[11px] text-slate-400 mt-2">
-                Summer and Winter semesters use Brookdale Community College for transfer credit savings.
+                {accelerated ? 'Graduate-year summer and winter terms use UDel. Winter is labeled by its preceding fall year.' : 'Summer and Winter semesters use Brookdale Community College for transfer credit savings.'}
               </p>
             </div>
 

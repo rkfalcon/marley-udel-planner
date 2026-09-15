@@ -1,3 +1,4 @@
+import { extendAcceleratedSlpPlan } from "./accelerated-slp";
 import type { CompletedCourse, Plan, PlanCourse, Term } from "./types";
 import { REQUIREMENTS } from "./data/requirements";
 import { TRANSFER_MAPPINGS } from "./data/transfer-mappings";
@@ -173,6 +174,7 @@ function courseIdentities(
   return keys;
 }
 export function reconcilePlan(plan: Plan, records: AcademicCourse[]): Plan {
+  plan = extendAcceleratedSlpPlan(plan);
   const academicKeys = new Set(
     records.flatMap((c) => [
       ...courseIdentities(c),

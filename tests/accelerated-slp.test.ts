@@ -38,3 +38,23 @@ test('canonical edits reconcile into existing accelerated plans without duplicat
  const moved=reconcilePlan(completed,[{...course,term:'Fall',year:2028}]);
  assert.equal(evaluateAcceleratedSlp(moved).projected,0);
 });
+
+test('accelerated plans include every UDel term through 2030 without replacing existing courses', async () => {
+ const { reconcilePlan } = await import('../src/lib/academic-record');
+ const p=plan([semester('Summer',2028,'planned'),semester('Fall',2029,'planned','CSCD 610')]);
+ p.acceleratedSlp={entryYear:2025};
+ const extended=reconcilePlan(p,[]);
+ for (const year of [2029,2030]) for (const term of ['Fall','Winter','Spring','Summer']) {
+   assert.equal(extended.semesters.filter(s=>s.term===term&&s.year===year&&s.school==='udel').length,1);
+ }
+ assert.equal(extended.semesters.find(s=>s.term==='Fall'&&s.year===2029)?.courses[0].courseCode,'CSCD 610');
+ assert.deepEqual(reconcilePlan(extended,[]),extended);
+ assert.equal(evaluateAcceleratedSlp(extended).projected,0);
+ const last=extended.semesters.at(-1)!;
+ const withCourse={...extended,semesters:extended.semesters.map(s=>s.id===last.id?{...s,courses:[{...p.semesters[0].courses[0],id:'future',planSemesterId:s.id}]}:s)};
+ assert.equal(reconcilePlan(withCourse,[]).semesters.at(-1)?.courses.length,1);
+});
+test('ordinary plans keep their existing semester range',async()=>{
+ const { reconcilePlan }=await import('../src/lib/academic-record');
+ assert.equal(reconcilePlan(plan([semester('Spring',2028,'planned')]),[]).semesters.length,1);
+});

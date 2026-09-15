@@ -24,3 +24,12 @@ Published admissions-cycle rules currently cover 2026–2027. Marley’s anticip
 application cycle is later; the UI calls out the need to verify it. These department
 webpages are not part of the monthly catalog course importer. Future policy changes
 require review before changing the 109-credit / 3.6 GPA rules.
+
+## Semester range (September 15, 2026)
+
+Accelerated plans automatically retain/add UDel terms from Summer of entry year + 3
+through Winter of entry year + 5. For Marley this includes every term in 2029 and
+2030. Winter 2030 means January 2031 under the existing academic-year convention.
+The extension is additive, uses stable semester IDs and leaves existing courses,
+Brookdale semesters and the Spring 2028 junior-year deadline unchanged. It applies
+when opening existing plans, creating new plans, editing courses and printing.

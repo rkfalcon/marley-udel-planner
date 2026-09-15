@@ -31,3 +31,31 @@ export function evaluateAcceleratedSlp(plan: Plan) {
   const gpaStatus = !valid ? 'unknown' : gpas.every(g => g! >= 3.6) ? 'meets' : 'below';
   return {entryYear,juniorYear,earned,projected,remaining:Math.max(0,109-projected),major,lateCourses,gpaStatus};
 }
+
+/** Keep all graduate-year terms available, including winter after the final fall. */
+export function acceleratedSlpTerms(entryYear: number) {
+  const terms: { term: Term; year: number; school: 'udel' }[] = [];
+  for (let year = entryYear + 3; year <= entryYear + 5; year++) {
+    for (const term of ['Spring', 'Summer', 'Fall', 'Winter'] as const) {
+      if (year === entryYear + 3 && term === 'Spring') continue;
+      terms.push({ term, year, school: 'udel' });
+    }
+  }
+  return terms;
+}
+
+export function extendAcceleratedSlpPlan(plan: Plan): Plan {
+  if (!plan.acceleratedSlp) return plan;
+  const semesters = [...plan.semesters];
+  for (const term of acceleratedSlpTerms(plan.acceleratedSlp.entryYear)) {
+    if (semesters.some(s => s.term === term.term && s.year === term.year && s.school === term.school)) continue;
+    semesters.push({
+      ...term,
+      id: `slp-semester-${term.term}-${term.year}-udel`,
+      planId: plan.id,
+      sortOrder: semesters.length,
+      courses: [],
+    });
+  }
+  return { ...plan, semesters };
+}
