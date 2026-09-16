@@ -128,6 +128,9 @@ export function SemesterCard({
               <div key={course.id}>
               <CourseChip
                 courseCode={course.courseCode}
+                catalogUrl={course.catalogUrl}
+                sourceUrls={course.sourceUrls}
+                program={course.program}
                 title={course.title}
                 credits={course.credits}
                 status={course.status}

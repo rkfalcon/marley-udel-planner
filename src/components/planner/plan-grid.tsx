@@ -99,6 +99,7 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
 
     onAddCourse(activeSemesterId, {
       courseCode: course.courseCode,
+      catalogUrl: course.catalogUrl,
       title: course.title,
       school: course.school,
       credits: course.credits,

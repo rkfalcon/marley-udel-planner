@@ -90,6 +90,7 @@ export interface PlanSemester {
 }
 
 export interface PlanCourse {
+  catalogUrl?: string;
   program?: 'undergraduate' | 'graduate';
   sharedBsCredits?: number;
   sourceUrls?: string[];

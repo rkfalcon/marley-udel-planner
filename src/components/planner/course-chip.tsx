@@ -1,5 +1,6 @@
 'use client';
 
+import { CourseCatalogLink } from './course-catalog-link';
 import { X, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CourseSchedulingInfo } from './course-scheduling-info';
@@ -7,6 +8,9 @@ import { CourseStatus, School } from '@/lib/types';
 import { REQUIREMENTS } from '@/lib/data/requirements';
 
 interface CourseChipProps {
+  catalogUrl?: string;
+  sourceUrls?: string[];
+  program?: 'undergraduate' | 'graduate';
   courseCode: string;
   title: string;
   credits: number;
@@ -19,6 +23,9 @@ interface CourseChipProps {
 
 export function CourseChip({
   courseCode,
+  catalogUrl,
+  sourceUrls,
+  program,
   title,
   credits,
   status,
@@ -74,7 +81,7 @@ export function CourseChip({
 
   return (
     <div className={containerClasses} title={tooltipTitle}>
-      <span className="truncate max-w-[120px] leading-none">{displayCode}</span>
+      <CourseCatalogLink course={{courseCode,school,catalogUrl,sourceUrls,program}} className="truncate max-w-[120px] leading-none">{displayCode}</CourseCatalogLink>
 
       <span className={creditsBadgeClasses}>{credits}cr</span>
       {school === 'udel' && <CourseSchedulingInfo courseCode={courseCode} />}
