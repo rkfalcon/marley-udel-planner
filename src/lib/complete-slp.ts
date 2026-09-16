@@ -56,7 +56,14 @@ export function semesterDegreeCredits(plan: Plan) {
     (s.year + (s.term === 'Winter' ? 1 : 0)) * 12 +
     ({ Winter: 1, Spring: 3, Summer: 6, Fall: 9 }[s.term]);
   return new Map(plan.semesters.map(semester => {
-    const throughTerm = plan.semesters.filter(s => position(s) <= position(semester));
+    const throughTerm = plan.semesters.filter(s => position(s) <= position(semester)).map(s => ({
+      ...s,
+      courses: s.courses.map(c => ({
+        ...c,
+        // Older plans predate explicit BS/MA allocation. Preserve saved allocations.
+        program: c.program ?? (c.school === 'udel' && Number(c.courseCode.match(/\b(\d{3})\b/)?.[1]) >= 600 ? 'graduate' as const : 'undergraduate' as const),
+      })),
+    }));
     const audit = pathwayAudit({ ...plan, semesters: throughTerm });
     return [semester.id, {
       bsProjected: audit.bsProjected,

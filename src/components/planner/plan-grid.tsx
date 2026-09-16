@@ -104,7 +104,7 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
       school: course.school,
       credits: course.credits,
       status: 'planned',
-      ...(plan.pathway ? {program: Number(course.courseCode.match(/\b(\d{3})\b/)?.[1]) >= 600 ? 'graduate' as const : 'undergraduate' as const} : {}),
+      program: course.school === 'udel' && Number(course.courseCode.match(/\b(\d{3})\b/)?.[1]) >= 600 ? 'graduate' : 'undergraduate',
       fulfillsRequirements: course.fulfillsRequirements,
     });
   };
@@ -123,7 +123,7 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
     .filter((c) => c.status === 'in_progress')
     .reduce((sum, c) => sum + c.credits, 0);
 
-  const degreeCredits = plan.pathway ? semesterDegreeCredits(plan) : undefined;
+  const degreeCredits = semesterDegreeCredits(plan);
   const academicYearGroups = groupByAcademicYear(plan.semesters);
   const sortedYears = Array.from(academicYearGroups.keys()).sort((a, b) => {
     if (a === 'Prior to UDel') return -1;

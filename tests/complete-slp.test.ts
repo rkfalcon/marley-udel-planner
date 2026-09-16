@@ -61,3 +61,17 @@ test('semester totals follow calendar winters, separate earned credits and cap s
  assert.equal(totals.get('spring')?.bsEarned,18);
  assert.equal(totals.get('spring')?.maEarned,16);
 });
+
+test('ordinary and legacy plans get cumulative counters without changing saved records',async()=>{
+ const {semesterDegreeCredits}=await import('../src/lib/complete-slp');
+ const p=clonePathway(base,'ordinary','ordinary');
+ p.semesters[0].courses[0].status='completed';
+ p.semesters.push({...p.semesters[0],id:'later',year:2028,courses:[{...graduate('legacy','CSCD 610',3),program:undefined}]});
+ const before=structuredClone(p);
+ const totals=semesterDegreeCredits(p);
+ assert.equal(totals.get(p.semesters[0].id)?.bsEarned,3);
+ assert.equal(totals.get('later')?.bsProjected,3);
+ assert.equal(totals.get('later')?.maProjected,3);
+ assert.equal(totals.get('later')?.shared,0);
+ assert.deepEqual(p,before);
+});
