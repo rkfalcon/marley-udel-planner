@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { CompletePathway } from '@/components/planner/complete-pathway';
 import { AcceleratedSlp } from '@/components/planner/accelerated-slp';
 import { PlanGrid } from '@/components/planner/plan-grid';
 import { GraduationTracker } from '@/components/planner/graduation-tracker';
@@ -86,8 +87,9 @@ export default function PlanEditorPage() {
     [removeCourse]
   );
 
+  const optionalUpdatePin = !!plan?.pathway && isExistingPlan && saveMode === 'update';
   const handleSaveUpdate = async () => {
-    if (!pin.trim() || pin.length < 4) {
+    if ((!optionalUpdatePin && !pin.trim()) || (pin.length > 0 && pin.length < 4)) {
       setPinError('PIN must be at least 4 characters');
       return;
     }
@@ -316,7 +318,7 @@ export default function PlanEditorPage() {
               ) : saveMode === 'choose' || saveMode === 'update' ? (
                 <div className="space-y-5 pt-2">
                   <p className="text-sm text-slate-500">
-                    {isExistingPlan ? 'Enter your PIN to update the plan.' : 'Set a PIN to protect your plan. You\'ll need it to edit or share the plan later.'}
+                    {isExistingPlan ? (optionalUpdatePin ? 'Enter the plan PIN if one was set. Otherwise leave it blank; protected plans still require their PIN.' : 'Enter your PIN to update the plan.') : 'Set a PIN to protect your plan. You\'ll need it to edit or share the plan later.'}
                   </p>
 
                   <div className="space-y-2">
@@ -345,7 +347,7 @@ export default function PlanEditorPage() {
                     )}
                   </div>
 
-                  <Button onClick={handleSaveUpdate} disabled={saveLoading || !pin.trim()} className="w-full bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={handleSaveUpdate} disabled={saveLoading || (!optionalUpdatePin && !pin.trim())} className="w-full bg-blue-600 hover:bg-blue-700">
                     {saveLoading ? (
                       <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Saving...</span>
                     ) : (
@@ -454,6 +456,7 @@ export default function PlanEditorPage() {
         </div>
       </header>
 
+      <CompletePathway plan={plan} onChange={pathway => setPlan({...plan, pathway, updatedAt: new Date().toISOString()})} />
       <AcceleratedSlp plan={plan} onChange={acceleratedSlp => setPlan({...plan, acceleratedSlp, updatedAt: new Date().toISOString()})} />
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
@@ -475,7 +478,7 @@ export default function PlanEditorPage() {
         >
           {sidebarOpen && (
             <div className="p-4 h-full">
-              <GraduationTracker plan={plan} />
+              {plan.pathway ? <CompletePathway plan={plan} compact /> : <GraduationTracker plan={plan} />}
             </div>
           )}
         </aside>

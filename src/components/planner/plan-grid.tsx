@@ -1,5 +1,6 @@
 'use client';
 
+import { pathwayAudit } from '@/lib/complete-slp';
 import { useState } from 'react';
 import { GraduationCap, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -102,6 +103,7 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
       school: course.school,
       credits: course.credits,
       status: 'planned',
+      ...(plan.pathway ? {program: Number(course.courseCode.match(/\b(\d{3})\b/)?.[1]) >= 600 ? 'graduate' as const : 'undergraduate' as const} : {}),
       fulfillsRequirements: course.fulfillsRequirements,
     });
   };
@@ -221,14 +223,14 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
 
       {/* Course picker sheet */}
       <CoursePicker
-        planCourses={plan.semesters.flatMap(s => s.courses)}
+        planCourses={plan.pathway ? pathwayAudit(plan).bsCourses : plan.semesters.flatMap(s => s.courses)}
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         onSelectCourse={handleSelectCourse}
         semesterTerm={activeSemester?.term}
         semesterSchool={activeSemester?.school}
         plannedCourseCodes={plan.semesters.flatMap(s => s.courses.map(c => c.courseCode))}
-        totalPlanCredits={plan.semesters.reduce((sum, s) => sum + s.courses.reduce((cs, c) => cs + c.credits, 0), 0)}
+        totalPlanCredits={plan.pathway ? pathwayAudit(plan).bsProjected : plan.semesters.reduce((sum, s) => sum + s.courses.reduce((cs, c) => cs + c.credits, 0), 0)}
       />
     </div>
   );

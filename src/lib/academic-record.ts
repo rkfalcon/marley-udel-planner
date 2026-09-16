@@ -192,7 +192,9 @@ export function reconcilePlan(plan: Plan, records: AcademicCourse[]): Plan {
       (c) =>
         !c.academicCourseId &&
         !c.id.startsWith("academic-") &&
-        !courseIdentities(c).some((key) => academicKeys.has(key)),
+        !(plan.pathway && c.program === 'graduate'
+          ? records.some(r => r.term === s.term && r.year === s.year && courseIdentities(r).some(key => courseIdentities(c).includes(key)))
+          : courseIdentities(c).some((key) => academicKeys.has(key))),
     ),
   }));
   for (const c of activeCourses(records)) {
@@ -211,7 +213,11 @@ export function reconcilePlan(plan: Plan, records: AcademicCourse[]): Plan {
       };
       semesters.push(semester);
     }
+    const allocation = plan.pathway ? plan.semesters.flatMap(s => s.courses
+      .filter(p => p.academicCourseId === c.id || (s.term === c.term && s.year === c.year && courseIdentities(p).some(k => courseIdentities(c).includes(k)))))
+      [0] : undefined;
     const entry: PlanCourse = {
+      ...allocation,
       id: `academic-${c.id}`,
       academicCourseId: c.id,
       planSemesterId: semester.id,

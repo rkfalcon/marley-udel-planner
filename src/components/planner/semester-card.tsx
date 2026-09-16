@@ -122,8 +122,8 @@ export function SemesterCard({
         ) : (
           <div className="flex flex-col gap-1">
             {courses.map((course) => (
+              <div key={course.id}>
               <CourseChip
-                key={course.id}
                 courseCode={course.courseCode}
                 title={course.title}
                 credits={course.credits}
@@ -137,6 +137,8 @@ export function SemesterCard({
                     : undefined
                 }
               />
+              {course.program && <p className="px-1 text-[10px] text-slate-500">{course.program === 'graduate' ? 'MA' : 'BS'}{course.sharedBsCredits ? ` · +${course.sharedBsCredits} BS shared (proposed)` : ''}</p>}
+              </div>
             ))}
           </div>
         )}

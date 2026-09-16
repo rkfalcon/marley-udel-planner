@@ -66,6 +66,7 @@ export interface CompletedCourse {
 }
 
 export interface Plan {
+  pathway?: import("./complete-slp").CompleteSlpPathway;
   acceleratedSlp?: import("./accelerated-slp").AcceleratedSlpSettings;
   id: string;
   name: string;
@@ -89,6 +90,15 @@ export interface PlanSemester {
 }
 
 export interface PlanCourse {
+  program?: 'undergraduate' | 'graduate';
+  sharedBsCredits?: number;
+  sourceUrls?: string[];
+  prerequisites?: string;
+  corequisites?: string;
+  verification?: string;
+  rationale?: string;
+  requirementRole?: 'required' | 'elective';
+  courseKind?: 'academic' | 'clinical' | 'seminar' | 'project';
   academicCourseId?: string;
   id: string;
   planSemesterId: string;

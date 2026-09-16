@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { MARLEY_PROFILE } from '@/lib/data/marley-progress';
 import { REQUIREMENTS } from '@/lib/data/requirements';
 import { TRANSFER_MAPPINGS } from '@/lib/data/transfer-mappings';
+import { CompletePathway } from '@/components/planner/complete-pathway';
 import { AcceleratedSlp } from '@/components/planner/accelerated-slp';
 import { usePlan } from '@/hooks/use-plan';
 import { evaluateRequirements, matchesRequirement } from '@/lib/requirement-evaluation';
@@ -115,6 +116,8 @@ export default function PrintPlanPage() {
       <div className="p-8 text-center text-gray-500">Plan not found</div>
     );
   }
+
+  if (plan.pathway) return <main className="max-w-6xl mx-auto p-4"><h1 className="text-2xl font-bold">{plan.name}</h1><CompletePathway plan={plan} print /><AcceleratedSlp plan={plan} /><style jsx global>{`@media print { @page { margin: 0.5in; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }`}</style></main>;
 
   return (
     <>

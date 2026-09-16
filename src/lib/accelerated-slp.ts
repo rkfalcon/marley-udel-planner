@@ -20,8 +20,8 @@ export function evaluateAcceleratedSlp(plan: Plan) {
   const entryYear = settings?.entryYear ?? 2025;
   const juniorYear = entryYear + 3;
   const deadline = position('Spring', juniorYear);
-  const before = plan.semesters.filter(s => position(s.term,s.year) <= deadline).flatMap(s => s.courses);
-  const lateCourses = plan.semesters.filter(s => position(s.term,s.year) > deadline).flatMap(s => s.courses.map(c => ({...c, semester: `${s.term} ${s.year}`})));
+  const before = plan.semesters.filter(s => position(s.term,s.year) <= deadline).flatMap(s => s.courses.filter(c => !plan.pathway || c.program !== 'graduate'));
+  const lateCourses = plan.semesters.filter(s => position(s.term,s.year) > deadline).flatMap(s => s.courses.filter(c => !plan.pathway || c.program !== 'graduate').map(c => ({...c, semester: `${s.term} ${s.year}`})));
   const earned = before.filter(c => c.status === 'completed' || c.status === 'transfer').reduce((n,c)=>n+c.credits,0);
   const projected = before.reduce((n,c)=>n+c.credits,0);
   const evaluated = evaluateRequirements([], before);
