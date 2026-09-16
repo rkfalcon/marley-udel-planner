@@ -2,6 +2,7 @@
 import { pathwayAudit, type CompleteSlpPathway } from '@/lib/complete-slp';
 import { evaluateAcceleratedSlp } from '@/lib/accelerated-slp';
 import { REQUIREMENTS } from '@/lib/data/requirements';
+import { CourseSchedulingInfo } from './course-scheduling-info';
 import type { Plan } from '@/lib/types';
 
 export function CompletePathway({plan, print=false, compact=false, onChange}: {plan:Plan; print?:boolean; compact?:boolean; onChange?:(pathway:CompleteSlpPathway)=>void}) {
@@ -41,7 +42,7 @@ export function CompletePathway({plan, print=false, compact=false, onChange}: {p
         <h3 className={`rounded p-2 text-white font-semibold ${s.school==='brookdale'?'bg-emerald-600':'bg-blue-600'}`}>{s.term} {s.year} · {s.school==='brookdale'?'Brookdale':'UDel'}{s.term==='Winter'?` (January ${s.year+1})`:''} · {s.courses.reduce((n,c)=>n+c.credits,0)} credits</h3>
         <p className="my-2">{s.courses.some(c=>c.program==='graduate')?'Graduate phase':'Undergraduate phase'} · Cumulative undergraduate coursework: {undergraduateCumulative} credits</p>
         <div className="overflow-x-auto"><table className="w-full text-xs text-left"><thead><tr><th className="p-2">Course / credits</th><th className="p-2">Applies to / purpose</th><th className="p-2">Prerequisites / verification</th></tr></thead><tbody>{s.courses.map(c=><tr key={c.id} className="border-t align-top">
-          <td className="p-2"><strong>{c.courseCode}</strong> — {c.title}<br/>{c.credits} credits · {c.status.replace('_',' ')}{c.grade?` · Grade ${c.grade}`:''}<br/>{c.requirementRole??'Existing academic record'}{c.courseKind?` · ${c.courseKind}`:''}</td>
+          <td className="p-2"><strong>{c.courseCode}</strong> {c.school === 'udel' && <CourseSchedulingInfo courseCode={c.courseCode} />} — {c.title}<br/>{c.credits} credits · {c.status.replace('_',' ')}{c.grade?` · Grade ${c.grade}`:''}<br/>{c.requirementRole??'Existing academic record'}{c.courseKind?` · ${c.courseKind}`:''}</td>
           <td className="p-2">{c.program==='graduate'?'M.A. Speech-Language Pathology':'B.S. Cognitive Science'}{c.sharedBsCredits?` + ${c.sharedBsCredits} proposed B.S. shared credits (${p.sharedApproval?'advisor approval recorded':'approval pending'})`:''}<br/>{c.fulfillsRequirements?.map(id=>REQUIREMENTS.find(r=>r.id===id)?.name??id).join('; ')|| (c.program==='graduate'?'Required MA curriculum':'BS degree credit minimum')}<p>{c.rationale}</p></td>
           <td className="p-2">{c.prerequisites}<br/>{c.corequisites?`Corequisite: ${c.corequisites}`:''}<p>{c.verification??'Preserved from source/academic record.'}</p>{c.sourceUrls?.map((url,i)=><a key={url} className="mr-2 underline" href={url} target="_blank" rel="noreferrer">{i===0?'Course catalog':i===1?'MA requirements':'Department sequence'}</a>)}</td>
         </tr>)}</tbody></table></div>

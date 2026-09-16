@@ -2,7 +2,7 @@
 
 import { X, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
+import { CourseSchedulingInfo } from './course-scheduling-info';
 import { CourseStatus, School } from '@/lib/types';
 import { REQUIREMENTS } from '@/lib/data/requirements';
 
@@ -77,6 +77,7 @@ export function CourseChip({
       <span className="truncate max-w-[120px] leading-none">{displayCode}</span>
 
       <span className={creditsBadgeClasses}>{credits}cr</span>
+      {school === 'udel' && <CourseSchedulingInfo courseCode={courseCode} />}
 
       {hasManualReq && (
         <Link2
