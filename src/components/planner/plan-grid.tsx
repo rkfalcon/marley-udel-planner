@@ -1,6 +1,6 @@
 'use client';
 
-import { pathwayAudit } from '@/lib/complete-slp';
+import { pathwayAudit, semesterDegreeCredits } from '@/lib/complete-slp';
 import { useState } from 'react';
 import { GraduationCap, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -122,6 +122,7 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
     .filter((c) => c.status === 'in_progress')
     .reduce((sum, c) => sum + c.credits, 0);
 
+  const degreeCredits = plan.pathway ? semesterDegreeCredits(plan) : undefined;
   const academicYearGroups = groupByAcademicYear(plan.semesters);
   const sortedYears = Array.from(academicYearGroups.keys()).sort((a, b) => {
     if (a === 'Prior to UDel') return -1;
@@ -209,6 +210,7 @@ export function PlanGrid({ plan, onAddCourse, onRemoveCourse }: PlanGridProps) {
                     <SemesterCard
                       key={semester.id}
                       semester={semester}
+                      degreeCredits={degreeCredits?.get(semester.id)}
                       onAddCourse={handleAddCourse}
                       onRemoveCourse={onRemoveCourse}
                       isLocked={isSemesterLocked(semester)}

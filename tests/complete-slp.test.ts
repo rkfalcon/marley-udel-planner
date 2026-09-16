@@ -42,3 +42,22 @@ test('graduate coursework cannot inflate the 109-credit undergraduate transition
  p.semesters.push({...p.semesters[0],id:'late',term:'Fall',year:2028,courses:[{...base.semesters[0].courses[0],courseCode:'CGSC 378',fulfillsRequirements:['ppslp-cgsc378']}]});
  assert.equal(pathwayAudit(p).transitionRequirements.requirementsWithStatus.find(r=>r.id==='ppslp-cgsc378')?.projectedFulfilled,false);
 });
+
+test('semester totals follow calendar winters, separate earned credits and cap sharing',async()=>{
+ const {semesterDegreeCredits}=await import('../src/lib/complete-slp');
+ const p=clonePathway(base,'copy','copy');
+ p.pathway={sourceSlug:'source',type:'3+2-slp',catalogYear:'2026–2027',bsAward:'Fall 2028',maAward:'Spring 2030',sharedApproval:false,graduateRequirements:[],notes:[]};
+ p.semesters[0].courses[0].status='completed';
+ const make=(id:string,term:'Fall'|'Spring'|'Winter',year:number,courses:PlanCourse[])=>({id,planId:p.id,term,year,school:'udel' as const,sortOrder:0,courses});
+ p.semesters.push(make('spring','Spring',2029,[graduate('s','CSCD 625',3)]),make('winter','Winter',2028,[graduate('w','CSCD 615',2)]),make('fall','Fall',2028,[graduate('f','CSCD 610',16,16)]));
+ let totals=semesterDegreeCredits(p);
+ assert.deepEqual(totals.get('fall'),{bsProjected:18,bsEarned:3,maProjected:16,maEarned:0,shared:15,sharedApproved:false});
+ assert.equal(totals.get('winter')?.maProjected,18);
+ assert.equal(totals.get('spring')?.maProjected,21);
+ p.semesters.find(s=>s.id==='fall')!.courses[0].status='completed';
+ assert.equal(semesterDegreeCredits(p).get('spring')?.bsEarned,3);
+ p.pathway.sharedApproval=true;
+ totals=semesterDegreeCredits(p);
+ assert.equal(totals.get('spring')?.bsEarned,18);
+ assert.equal(totals.get('spring')?.maEarned,16);
+});

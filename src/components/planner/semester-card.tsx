@@ -12,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { CourseChip } from './course-chip';
+import type { SemesterDegreeCredits } from '@/lib/complete-slp';
 import { PlanSemester } from '@/lib/types';
 
 interface SemesterCardProps {
@@ -19,6 +20,7 @@ interface SemesterCardProps {
   onAddCourse: (semesterId: string) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
   isLocked?: boolean;
+  degreeCredits?: SemesterDegreeCredits;
 }
 
 function formatSemesterLabel(term: string, year: number): string {
@@ -30,6 +32,7 @@ export function SemesterCard({
   onAddCourse,
   onRemoveCourse,
   isLocked = false,
+  degreeCredits,
 }: SemesterCardProps) {
   const { term, year, school, courses } = semester;
   const isBrookdale = school === 'brookdale';
@@ -181,6 +184,15 @@ export function SemesterCard({
               </Button>
             )}
           </div>
+          {degreeCredits && (
+            <div aria-label={`Cumulative degree credits through ${term} ${year}`} className="mt-2 space-y-1.5 rounded-md bg-white/80 p-2 text-[11px] text-slate-600 border border-slate-200">
+              <p className="font-semibold text-slate-700">Cumulative through this term</p>
+              <p className="flex justify-between gap-1"><span>BS projected</span><strong className="text-blue-800">{degreeCredits.bsProjected} / 124 cr</strong></p>
+              <p className="flex justify-between gap-1"><span>MA projected</span><strong className="text-teal-800">{degreeCredits.maProjected} / 60 cr</strong></p>
+              <p className="text-[10px]">Earned: BS {degreeCredits.bsEarned} · MA {degreeCredits.maEarned}</p>
+              {degreeCredits.shared > 0 && <p className="text-[10px] leading-snug">Includes {degreeCredits.shared} {degreeCredits.sharedApproved ? 'approved' : 'proposed'} shared credits{degreeCredits.sharedApproved ? '.' : '; advisor approval pending.'}</p>}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -49,3 +49,24 @@ export function pathwayAudit(plan: Plan) {
   ).flatMap(s => s.courses.filter(c => c.program !== 'graduate'));
   return {undergraduate,graduate,shared,sharedEarned,issues,bsCourses,transitionRequirements:evaluateRequirements([],beforeTransition),uniqueCredits:total(courses),undergraduateCredits:total(undergraduate),bsProjected:total(undergraduate)+shared,bsConfirmedProjection:total(undergraduate)+(plan.pathway?.sharedApproval?shared:0),bsEarned:total(undergraduate.filter(earned))+(plan.pathway?.sharedApproval?sharedEarned:0),maCredits:total(graduate),maEarned:total(graduate.filter(earned)),graduateRequirements,bsRequirements:evaluateRequirements([],bsCourses)};
 }
+
+/** End-of-term totals include both schools when a term has multiple cards. */
+export function semesterDegreeCredits(plan: Plan) {
+  const position = (s: Plan['semesters'][number]) =>
+    (s.year + (s.term === 'Winter' ? 1 : 0)) * 12 +
+    ({ Winter: 1, Spring: 3, Summer: 6, Fall: 9 }[s.term]);
+  return new Map(plan.semesters.map(semester => {
+    const throughTerm = plan.semesters.filter(s => position(s) <= position(semester));
+    const audit = pathwayAudit({ ...plan, semesters: throughTerm });
+    return [semester.id, {
+      bsProjected: audit.bsProjected,
+      bsEarned: audit.bsEarned,
+      maProjected: audit.maCredits,
+      maEarned: audit.maEarned,
+      shared: audit.shared,
+      sharedApproved: !!plan.pathway?.sharedApproval,
+    }];
+  }));
+}
+
+export type SemesterDegreeCredits = ReturnType<typeof semesterDegreeCredits> extends Map<string, infer T> ? T : never;
